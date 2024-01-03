@@ -55,8 +55,9 @@ class Graph:
         else:
             raise ValueError("Invalid degree measure")
 
-    def build_shuffled_nodes_lst(self):
+    def build_shuffled_nodes_lst(self, seed=42):
         self.random_nodes_id_lst = list(self.nodes.keys())
+        random.seed(seed)
         random.shuffle(self.random_nodes_id_lst)
         print("Initialized shuffled nodes list with", len(self.random_nodes_id_lst), "nodes")
 
