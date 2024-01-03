@@ -10,13 +10,18 @@ from utils import read_trec_results, get_file_ids
 import os
 import numpy as np
 # write the traversal algorithm
-def max_tsp_traverse(graph: Graph):
+def max_tsp_traverse(graph: Graph, node_selection='min_degree'):
     traversal_paths = []
     curr_path = []
     visited = set()
     num_visited = 0
     while graph.get_node_count() > 0:
-        d_i = graph.get_min_degree_node()
+        if node_selection == 'min_degree':
+            d_i = graph.get_min_degree_node()
+        elif node_selection == 'max_degree':
+            d_i = graph.get_max_degree_node()
+        else:
+            d_i = graph.get_random_node()
         # print("Exploring node", d_i.get_doc_id())
 
         curr_path.append(d_i)
@@ -48,6 +53,9 @@ def parse_args():
     # parser.add_argument('--result_dir', type=str, default='/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/bm25_search_results/')
     parser.add_argument('--adj_list_file', type=str, default='/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/adj_lists/')
     parser.add_argument('--test', action='store_true')
+    parser.add_argument('--degree_measure', type=str, default='all', choices=['all', 'in', 'out'])
+    parser.add_argument('--node_selection', type=str, default='min_degree', choices=['min_degree', 'max_degree', 'random'])
+    parser.add_argument("--undirected", default=False, action="store_true")
     return parser.parse_args()
 
 # def read_search_results():
@@ -90,7 +98,7 @@ def main(args):
     if args.test:
         all_file_ids = list(all_file_ids)[:1000]
     # Add the documents as nodes
-    graph = Graph()
+    graph = Graph(degree_measure=args.degree_measure)
     for doc_id in all_file_ids:
         graph.add_node(Node(doc_id))
 
@@ -101,16 +109,25 @@ def main(args):
     adj_list = json.load(open(args.adj_list_file))
     for query_id, doc_score_lst in adj_list.items():
         for doc_id, score in doc_score_lst:
-            graph.add_edge(graph.get_node(query_id), graph.get_node(doc_id), score, directed=True)
+            graph.add_edge(graph.get_node(query_id), graph.get_node(doc_id), score, directed=not args.undirected)
 
     print("Number of edges:", len(graph.get_edges()))
+    if args.node_selection == 'min_degree':
+        graph.build_min_heap()
+        print("Built min heap", len(graph.min_heap))
+    elif args.node_selection == 'max_degree':
+        graph.build_max_heap()
+        print("Built max heap", len(graph.max_heap))
+    elif args.node_selection == 'random':
+        graph.build_shuffled_nodes_lst()
+        print("Built shuffled nodes list", len(graph.random_nodes_id_lst))
+    else:
+        raise ValueError("Invalid node selection method")
 
-    graph.build_min_heap()
-    print("Built min heap", len(graph.min_heap))
     # traverse the graph
     start_time = time.time()
     print("Start traversing the graph...")
-    result_paths = max_tsp_traverse(graph)
+    result_paths = max_tsp_traverse(graph, node_selection=args.node_selection)
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Time taken: {elapsed_time:.2f} seconds")
@@ -131,6 +148,9 @@ if __name__ == '__main__':
     result_path = main(args)
     formatted_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     path_name = args.adj_list_file.split('/')[-1].split('.')[0]
+    path_name += '_test' if args.test else ''
+    path_name += f'_{args.degree_measure}_degree_{args.node_selection}_selection'
+    path_name += '_undirected' if args.undirected else ''
     result_file_name = os.path.join(os.path.dirname(os.path.dirname(args.adj_list_file)),
                                     "traversal_paths", f'result_path_{path_name}_{formatted_time}.json')
     print("Saving result to", result_file_name)
