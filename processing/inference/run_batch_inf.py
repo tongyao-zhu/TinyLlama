@@ -97,7 +97,7 @@ results = []
 for out in tqdm(pipe(KeyDataset(dataset, "text"), batch_size=args.batch_size), total=len(dataset)):
     results.append(out)
 
-print(results[:10], dataset[:10])
+# print(results[:10], dataset[:10])
 
 filename = os.path.join(args.save_dir, f"{remove_prefix(args.model_name)}.json")
 input_filename = os.path.join(args.save_dir, f"{remove_prefix(args.model_name)}_inputs.json")
@@ -105,7 +105,7 @@ input_filename = os.path.join(args.save_dir, f"{remove_prefix(args.model_name)}_
 json.dump(results, open(filename, "w"))
 print("Saved to ", os.path.join(args.save_dir, filename))
 
-json.dump(dataset['text'], open(input_filename, "w"))
+json.dump({"text": dataset['text'], "id": dataset['id']}, open(input_filename, "w"))
 print("Saved to ", os.path.join(args.save_dir, input_filename))
 
 # Sample usage"
