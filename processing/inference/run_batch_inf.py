@@ -47,6 +47,7 @@ def remove_prefix(name):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--train_data_dir", required=True)
+    parser.add_argument("--chunk_num", required=False, type = str, default="*")
     parser.add_argument("--model_name", required=True)
     parser.add_argument("--batch_size", default=128, required=False, type = int)
     parser.add_argument("--save_dir", default = "/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/generated_queries", required = False)
@@ -58,7 +59,7 @@ args = parse_args()
 # dataset = datasets.load_dataset(args.dataset_name, split="validation")
 # dataset = PretrainDataset(args.train_data_dir)
 # Load the dataset
-dataset = load_dataset('json', data_files={'train': args.train_data_dir + '/*.jsonl'})['train']
+dataset = load_dataset('json', data_files={'train': args.train_data_dir + f'/chunk_{args.chunk_num}.jsonl'})['train']
 # if a text is too long, only keep the last 500 char
 dataset = dataset.map(lambda x: {'text': x['title'][-500:]}, batched=False)
 
@@ -99,8 +100,8 @@ for out in tqdm(pipe(KeyDataset(dataset, "text"), batch_size=args.batch_size), t
 
 # print(results[:10], dataset[:10])
 
-filename = os.path.join(args.save_dir, f"{remove_prefix(args.model_name)}.json")
-input_filename = os.path.join(args.save_dir, f"{remove_prefix(args.model_name)}_inputs.json")
+filename = os.path.join(args.save_dir, f"{remove_prefix(args.model_name)}_chunk_{args.chunk_num}_results.json")
+input_filename = os.path.join(args.save_dir, f"{remove_prefix(args.model_name)}_chunk_{args.chunk_num}_input.json")
 
 json.dump(results, open(filename, "w"))
 print("Saved to ", os.path.join(args.save_dir, filename))
@@ -109,4 +110,4 @@ json.dump({"text": dataset['text'], "id": dataset['id']}, open(input_filename, "
 print("Saved to ", os.path.join(args.save_dir, input_filename))
 
 # Sample usage"
-# python run_batch_inf.py --train_data_dir /home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/queries/ --model_name /home/aiops/zhuty/tinyllama/out/tinyllama_120M/tinyllama_120M_20b/ --batch_size 256 --save_dir /home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/generated_queries --first_x 1000
+# python run_batch_inf.py --train_data_dir /home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/queries/ --model_name /home/aiops/zhuty/tinyllama/out/tinyllama_120M/tinyllama_120M_20b/ --batch_size 256 --save_dir /home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/generated_queries --chunk_num '0'
