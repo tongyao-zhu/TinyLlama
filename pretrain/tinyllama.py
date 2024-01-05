@@ -23,22 +23,39 @@ from pytorch_lightning.loggers import WandbLogger
 from lit_gpt import FusedCrossEntropyLoss
 import random
 
-model_name = "tiny_LLaMA_1b"
-name = "tinyllama_1b"
+import os
+# model_name = "tiny_LLaMA_120M"
+# name = "tinyllama_120M"
+# TODO: What is a better way to pass the model name?
+model_name = os.environ['MODEL_NAME']
+dataset_name = os.environ['DATASET_NAME']
+name = os.environ['WANDB_NAME']
+
 out_dir = Path("out") / name
 
 # Hyperparameters
 num_of_devices = 8
 global_batch_size = 512
 learning_rate = 4e-4
-micro_batch_size = 8
-max_step = 715256 * 2
+if "120M" in model_name:
+    micro_batch_size = 64
+elif '1b' in model_name:
+    micro_batch_size = 16
+else:
+    raise ValueError("Invalid model name")
+if '4k' in model_name:
+    micro_batch_size = micro_batch_size // 2 # 4k tokens
+if "2b_tokens" or "2b" in dataset_name:
+    max_step = 10000
+elif "20b_tokens" or "20b" in dataset_name:
+    max_step = 40000
+else:
+    raise ValueError("Invalid model name")
 warmup_steps = 2000
 log_step_interval = 10
 eval_iters = 100
 save_step_interval = 5000
-eval_step_interval = 5000
-
+eval_step_interval = 500
 
 weight_decay = 1e-1
 beta1 = 0.9
@@ -62,12 +79,13 @@ log_iter_interval = log_step_interval * gradient_accumulation_steps
 
 # Treat all dataset equally by their size. If you want to use a different weight for a dataset, add it to the list with the weight.
 train_data_config = [
-    ("train_slim", 0.693584),
-    ("train_star", 0.306416),
+    ("train", 1.0),
+    # ("train_slim", 0.693584),
+    # ("train_star", 0.306416),
 ]
 
 val_data_config = [
-    ("validation", 1.0),
+    ("valid", 1.0),
 ]
 
 hparams = {k: v for k, v in locals().items() if isinstance(v, (int, float, str)) and not k.startswith("_")}
@@ -256,7 +274,7 @@ def train(fabric, state, train_dataloader, val_dataloader, monitor, resume):
         )
 
             
-            
+        assert val_dataloader is not None, "val_dataloader is None"
             
         if val_dataloader is not None and not is_accumulating and state["step_count"] % eval_step_interval == 0:
             
