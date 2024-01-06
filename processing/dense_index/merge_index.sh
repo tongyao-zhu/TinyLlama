@@ -1,0 +1,1 @@
+python -m pyserini.index.merge_faiss_indexes --prefix /home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/dense_index/shard_ --shard-num 8

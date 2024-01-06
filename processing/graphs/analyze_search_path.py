@@ -5,9 +5,21 @@ import os
 os.chdir("/home/aiops/zhuty/tinyllama/processing/graphs")
 import tqdm
 import argparse
+import json
+import numpy as np
 from utils import read_trec_results
-version = "20b"
-result_dir = f"/home/aiops/zhuty/ret_pretraining_data/redpajama_{version}_id_added/bm25_search_results/"
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--version", required=True)
+    parser.add_argument("--search_type", required=True)
+    return parser.parse_args()
+
+args = parse_args()
+
+version = args.version
+search_type = args.search_type
+result_dir = f"/home/aiops/zhuty/ret_pretraining_data/redpajama_{version}_id_added/{search_type}_search_results/"
 TEST = False
 
 def read_search_results():
@@ -20,8 +32,8 @@ def read_search_results():
         # Use tqdm to display progress
         jobs = []
         for i in tqdm.tqdm(list(range(0, 89))):
-            file_path = '/home/aiops/zhuty/ret_pretraining_data/redpajama_{version}_id_added/bm25_search_results/chunk_{i}.result.txt'.format(
-                version=version, i=i)
+            file_path = '/home/aiops/zhuty/ret_pretraining_data/redpajama_{version}_id_added/{search_type}_search_results/chunk_{i}.result.txt'.format(
+                version=version, i=i, search_type=search_typeß)
 
             # Use pool.apply_async to run read_trec_results in a separate process
             job = pool.apply_async(read_trec_results, (file_path,))
@@ -92,7 +104,7 @@ to_write_data = []
 not_searched_query_ids = sorted(missing_queries)
 for docid in tqdm.tqdm(not_searched_query_ids, total=len(not_searched_query_ids)):
     chunk_id, seq_id = docid.split("_")
-    base_path = f"/home/aiops/zhuty/ret_pretraining_data/redpajama_{version}/queries"
+    base_path = f"/home/aiops/zhuty/ret_pretraining_data/redpajama_{version}_id_added/queries"
     jsonl_file = os.path.join(base_path, "chunk_{}.jsonl".format(chunk_id))
     with open(jsonl_file, "r") as f:
         # directly go the line
@@ -111,3 +123,38 @@ for docid in tqdm.tqdm(not_searched_query_ids, total=len(not_searched_query_ids)
 with open(os.path.join(base_path, "chunk_missing_queries.jsonl"), "w") as f:
     for data in to_write_data:
         f.write(json.dumps(data) + "\n")
+
+for top_k in [1,3, 5, 10, 20, 100]:
+    # add the top_k neighbors as edges
+    low_score_threshold = 30
+    adj_lst = {}
+    num_edges = 0
+    for query_id, docs in tqdm.tqdm(result_dict.items()):
+        adj_lst[query_id] = []
+        for doc in docs[:top_k + 1]:
+            if doc['doc_id'] == query_id:
+                # neighbor is the query itself, continue
+                continue
+            if doc['score'] < low_score_threshold:
+                # filter out the low score neighbors
+                continue
+            adj_lst[query_id].append((doc['doc_id'], doc['score']))
+            num_edges += 1
+    print("Number of edges:", num_edges)
+    # get the average out degree
+    print("Average out degree:", num_edges / len(sequence_set))
+    print("max out degree:", max([len(neighbors) for neighbors in adj_lst.values()]))
+    print("std out degree:", np.std([len(neighbors) for neighbors in adj_lst.values()]))
+    # get the average in degree
+    in_degree = {}
+    for query_id, neighbors in tqdm.tqdm(adj_lst.items()):
+        for neighbor in neighbors:
+            if neighbor[0] not in in_degree:
+                in_degree[neighbor[0]] = 0
+            in_degree[neighbor[0]] += 1
+    print("Average in degree:", sum(in_degree.values()) / len(sequence_set))
+    print("max in degree:", max(in_degree.values()))
+    print("min in degree:", min(in_degree.values()))
+    print("std in degree:", np.std(list(in_degree.values())))
+
+    json.dump(adj_lst, open(f"/home/aiops/zhuty/ret_pretraining_data/redpajama_{version}_id_added/adj_lists/{search_type}/adj_lst_top_{top_k}.json", "w"))
