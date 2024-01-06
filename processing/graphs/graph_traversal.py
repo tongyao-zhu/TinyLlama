@@ -49,7 +49,7 @@ def max_tsp_traverse(graph: Graph, node_selection='min_degree'):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--train_data_dir', type=str, default='/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/train/')
+    parser.add_argument('--train_data_dir', type=str, required=True)
     # parser.add_argument('--result_dir', type=str, default='/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/bm25_search_results/')
     parser.add_argument('--adj_list_file', type=str, default='/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/adj_lists/')
     parser.add_argument('--test', action='store_true')
