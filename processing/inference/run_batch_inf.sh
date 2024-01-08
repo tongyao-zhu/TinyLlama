@@ -11,6 +11,6 @@ let "end = $start + 9"
 for i in $(seq $start $end); do
   python  run_batch_inf.py --train_data_dir /home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/queries/ \
   --model_name /home/aiops/zhuty/tinyllama/out/tinyllama_120M/ \
-  --batch_size 32 --save_dir /home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/generated_queries \
-  --chunk_num "$1"
+  --batch_size 16 --save_dir /home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/generated_queries \
+  --chunk_num "$i"
 done
