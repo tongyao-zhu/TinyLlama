@@ -33,7 +33,7 @@ def read_search_results():
         jobs = []
         for i in tqdm.tqdm(list(range(0, 89))):
             file_path = '/home/aiops/zhuty/ret_pretraining_data/redpajama_{version}_id_added/{search_type}_search_results/chunk_{i}.result.txt'.format(
-                version=version, i=i, search_type=search_typeß)
+                version=version, i=i, search_type=search_type)
 
             # Use pool.apply_async to run read_trec_results in a separate process
             job = pool.apply_async(read_trec_results, (file_path,))
