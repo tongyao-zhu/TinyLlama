@@ -4,17 +4,33 @@ export DATASET_NAME=$2
 FULL_DATA_PATH=/home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME\_sample_processed
 export MODEL_NAME=$1
 
-# ensure that the model name is valid , either 'tiny_LLaMA_1b' or 'tiny_LLaMA_120M' or 'tiny_LLaMA_120M_4k'
-if [ $MODEL_NAME != "tiny_LLaMA_1b" ] && [ $MODEL_NAME != "tiny_LLaMA_120M" ] && [ $MODEL_NAME != "tiny_LLaMA_120M_4k" ]; then
+
+# List of valid model names
+valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_8k") # Add more model names as needed
+
+# Function to check if a model name is valid
+is_valid_model() {
+    local model_name=$1
+    for valid_model in "${valid_models[@]}"; do
+        if [ "$model_name" == "$valid_model" ]; then
+            return 0 # Model name is valid
+        fi
+    done
+    return 1 # Model name is not valid
+}
+
+# Check if the provided MODEL_NAME is valid
+if ! is_valid_model "$MODEL_NAME"; then
     echo "Error: '$MODEL_NAME' is not a valid model name."
     exit 1
 fi
 
-
 export WANDB_NAME=$MODEL_NAME\_$DATASET_NAME
 export NUMBER_OF_GPU=$(python -c "import torch; print(torch.cuda.device_count())")
+export WANDB_TAGS="pretraining,$DATASET_NAME,$MODEL_NAME"
 echo "Using $NUMBER_OF_GPU GPUs"
 echo "WANDB_NAME=$WANDB_NAME"
+echo "WANDB_TAGS=$WANDB_TAGS"
 
 lightning run model \
     --node-rank=0  \
