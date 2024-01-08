@@ -1,7 +1,8 @@
-SHARDNUM=$1
+VERSION=$1
+SHARDNUM=$2
 export CUDA_VISIBLE_DEVICES=0
-TRAIN_DATA_DIR=/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/train
-OUT_EMBEDDING_DIR=/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/dense_index/shard_$SHARDNUM
+TRAIN_DATA_DIR=/home/aiops/zhuty/ret_pretraining_data/$VERSION\_id_added/train
+OUT_EMBEDDING_DIR=/home/aiops/zhuty/ret_pretraining_data/$VERSION\_id_added/dense_index/shard_$SHARDNUM
 python -m pyserini.encode \
   input   --corpus $TRAIN_DATA_DIR \
           --fields text \
