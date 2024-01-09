@@ -265,6 +265,24 @@ tiny_LLaMA = [
     ),
     dict(
         org="StatNLP-research",
+        name="tiny_LLaMA_360M",
+        block_size=2048,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=18,  # 16
+        n_head=16,  # 16
+        n_embd=1024,  # 1024
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,
+        _mlp_class="LLaMAMLP",
+        intermediate_size=4096,
+        n_query_groups=16,  # 16
+    ),
+    dict(
+        org="StatNLP-research",
         name="tiny_LLaMA_120M",
         block_size=2048,
         vocab_size=32000,
@@ -282,9 +300,27 @@ tiny_LLaMA = [
         n_query_groups=1,
     ),
     dict(
-        org="StatNLP-research",
+        org="zhuty",
         name="tiny_LLaMA_120M_4k",
         block_size=4096,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=12,
+        n_head=12,
+        n_embd=768,
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,
+        _mlp_class="LLaMAMLP",
+        intermediate_size=2048,
+        n_query_groups=1,
+    ),
+    dict(
+        org="zhuty",
+        name="tiny_LLaMA_120M_8k",
+        block_size=8192,
         vocab_size=32000,
         padding_multiple=64,
         n_layer=12,
@@ -318,6 +354,42 @@ tiny_LLaMA = [
         n_query_groups=4,
         condense_ratio= 4
     ),
+    dict(
+        org="StatNLP-research",
+        name="tiny_LLaMA_1b_4k",
+        block_size=4096,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=22,
+        n_head=32,
+        n_embd=2048,
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,  # Llama 2 use 1e-5. Llama 1 use 1e-6
+        _mlp_class="LLaMAMLP",
+        intermediate_size=5632,
+        n_query_groups=4,
+    ),
+    dict(
+        org="StatNLP-research",
+        name="tiny_LLaMA_1b_8k",
+        block_size=8192,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=22,
+        n_head=32,
+        n_embd=2048,
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,  # Llama 2 use 1e-5. Llama 1 use 1e-6
+        _mlp_class="LLaMAMLP",
+        intermediate_size=5632,
+        n_query_groups=4,
+    )
 ]
 configs.extend(tiny_LLaMA)
 
