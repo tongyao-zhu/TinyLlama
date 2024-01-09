@@ -29,28 +29,35 @@ import os
 # TODO: What is a better way to pass the model name?
 model_name = os.environ['MODEL_NAME']
 dataset_name = os.environ['DATASET_NAME']
-name = os.environ['WANDB_NAME']
+save_name = os.environ['WANDB_NAME']
 
-out_dir = Path("out") / name
+out_dir = Path("out") / save_name
 
 # Hyperparameters
-num_of_devices = 8
+num_of_devices = int(os.environ['NUMBER_OF_GPU'])
 global_batch_size = 512
 learning_rate = 4e-4
 if "120M" in model_name:
     micro_batch_size = 64
 elif '1b' in model_name:
     micro_batch_size = 16
+elif '360M' in model_name:
+    micro_batch_size = 32
 else:
     raise ValueError("Invalid model name")
 if '4k' in model_name:
     micro_batch_size = micro_batch_size // 2 # 4k tokens
+elif '8k' in model_name:
+    micro_batch_size = micro_batch_size // 4 # 8k tokens
 if "2b_tokens" or "2b" in dataset_name:
     max_step = 10000
 elif "20b_tokens" or "20b" in dataset_name:
     max_step = 40000
+elif dataset_name == "c4_news":
+    # around 9b tokens?
+    max_step = 25000
 else:
-    raise ValueError("Invalid model name")
+    raise ValueError("Invalid dataset name")
 warmup_steps = 2000
 log_step_interval = 10
 eval_iters = 100
@@ -89,7 +96,7 @@ val_data_config = [
 ]
 
 hparams = {k: v for k, v in locals().items() if isinstance(v, (int, float, str)) and not k.startswith("_")}
-logger = step_csv_logger("out", name, flush_logs_every_n_steps=log_iter_interval)
+logger = step_csv_logger("out", save_name, flush_logs_every_n_steps=log_iter_interval)
 wandb_logger = WandbLogger()
 
 
@@ -323,6 +330,7 @@ def create_dataloader(
     data_config = train_data_config if split == "train" else val_data_config
     for prefix, _ in data_config:
         filenames = sorted(glob.glob(str(data_dir / f"{prefix}*")))
+        print("Found {} files for {}".format(len(filenames), prefix))
         random.seed(seed)
         random.shuffle(filenames)
 
