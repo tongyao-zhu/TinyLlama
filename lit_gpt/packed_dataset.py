@@ -176,6 +176,7 @@ class PackedDatasetIterator:
             filename = self._filenames[self._file_idx + i]
             if self._dtype is None:
                 self._dtype, self._chunk_size = self._read_header(filename)
+                assert self._chunk_size % self._block_size == 0, "Chunk size {} must be a multiple of block size {}".format(self._chunk_size, self._block_size)
                 self._n_blocks = self._chunk_size // self._block_size
             # TODO: check header matches with previous files
             mmap = np.memmap(filename, mode="r", order="C", offset=HDR_SIZE)
