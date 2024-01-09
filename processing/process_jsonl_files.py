@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import tqdm
@@ -5,7 +6,12 @@ import csv
 import os
 import tqdm
 from multiprocessing import Pool, cpu_count
-MODE = "fake_title"
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--mode', type=str,required=True, help="jsonl, tsv, fake_title")
+parser.add_argument("--dataset_name", type=str, required=True, help="dataset name")
+args = parser.parse_args()
+
 def process_jsonl(input_file, output_file):
     # extract chunk number from file, file is of name "chunk_0.jsonl"
     chunk_num = int(input_file.split("_")[-1].split(".")[0])
@@ -84,9 +90,11 @@ def process_tsv(input_file, tsv_file):
             writer.writerow([item['id'], item['contents']])
     print("Finished writing to file", tsv_file)
 
-if MODE == "jsonl":
-    OLD_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b/train"
-    NEW_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/train"
+if args.mode == "add_id":
+    # OLD_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b/train"
+    # NEW_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/train"
+    OLD_BASE_DIR = f"/home/aiops/zhuty/ret_pretraining_data/{args.dataset_name}/train"
+    NEW_BASE_DIR = f"/home/aiops/zhuty/ret_pretraining_data/id_added/{args.dataset_name}/train"
 
     for file_name in tqdm.tqdm(os.listdir(OLD_BASE_DIR), total=len(os.listdir(OLD_BASE_DIR))):
         # Skip the file if it is not a JSONL file
@@ -99,7 +107,7 @@ if MODE == "jsonl":
         # Process the JSONL file
         process_jsonl(input_file_path, output_file_path)
 
-elif MODE == "tsv":
+elif args.mode == "tsv":
     OLD_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/train"
     NEW_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/queries"
 
@@ -114,12 +122,13 @@ elif MODE == "tsv":
         # Process the JSONL file
         process_tsv(input_file_path, output_file_path)
 
-elif MODE=="fake_title":
+elif args.mode=="fake_title":
     # OLD_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/train"
     # NEW_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/queries"
-    OLD_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/train"
-    NEW_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/queries"
-
+    # OLD_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/train"
+    # NEW_BASE_DIR = "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/queries"
+    OLD_BASE_DIR = f"/home/aiops/zhuty/ret_pretraining_data/id_added/{args.dataset_name}/train"
+    NEW_BASE_DIR = f"/home/aiops/zhuty/ret_pretraining_data/id_added/{args.dataset_name}/queries"
     def process_file(file_name):
         # Skip the file if it is not a JSONL file
         if not file_name.endswith('.jsonl'):

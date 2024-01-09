@@ -8,9 +8,9 @@ VERSION=$2
 #OUT_PATH=/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/bm25_search_results/chunk_$CHUNK_NUM.result.txt
 #INDEX_PATH=/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/bm25_index
 
-QUERY_PATH=/home/aiops/zhuty/ret_pretraining_data/$VERSION/queries/chunk_$CHUNK_NUM.jsonl
-OUT_PATH=/home/aiops/zhuty/ret_pretraining_data/$VERSION/bm25_search_results/chunk_$CHUNK_NUM.result.txt
-INDEX_PATH=/home/aiops/zhuty/ret_pretraining_data/$VERSION/bm25_index
+QUERY_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$VERSION/queries/chunk_$CHUNK_NUM.jsonl
+OUT_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$VERSION/bm25_search_results/chunk_$CHUNK_NUM.result.txt
+INDEX_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$VERSION/bm25_index
 
 python -m pyserini.search.lucene \
   --index $INDEX_PATH \
