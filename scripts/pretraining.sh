@@ -1,12 +1,12 @@
 export WANDB_PROJECT=RetPretrain
 export WANDB_API_KEY=5723c6f7e50618fd5dd5a9c2dc2c293f293a25e6
 export DATASET_NAME=$2
-FULL_DATA_PATH=/home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME\_sample_processed
+FULL_DATA_PATH=/home/aiops/zhuty/ret_pretraining_data/sample_processed/$DATASET_NAME
 export MODEL_NAME=$1
 
 
 # List of valid model names
-valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_8k") # Add more model names as needed
+valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_8k" "tiny_LLaMA_360M") # Add more model names as needed
 
 # Function to check if a model name is valid
 is_valid_model() {
