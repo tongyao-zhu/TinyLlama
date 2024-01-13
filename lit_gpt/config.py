@@ -283,6 +283,42 @@ tiny_LLaMA = [
     ),
     dict(
         org="StatNLP-research",
+        name="tiny_LLaMA_360M_4k",
+        block_size=4096,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=18,  # 16
+        n_head=16,  # 16
+        n_embd=1024,  # 1024
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,
+        _mlp_class="LLaMAMLP",
+        intermediate_size=4096,
+        n_query_groups=16,  # 16
+    ),
+    dict(
+        org="StatNLP-research",
+        name="tiny_LLaMA_360M_8k",
+        block_size=8192,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=18,  # 16
+        n_head=16,  # 16
+        n_embd=1024,  # 1024
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,
+        _mlp_class="LLaMAMLP",
+        intermediate_size=4096,
+        n_query_groups=16,  # 16
+    ),
+    dict(
+        org="StatNLP-research",
         name="tiny_LLaMA_120M",
         block_size=2048,
         vocab_size=32000,
