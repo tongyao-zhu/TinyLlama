@@ -30,7 +30,7 @@ import os
 model_name = os.environ['MODEL_NAME']
 dataset_name = os.environ['DATASET_NAME']
 save_name = os.environ['WANDB_NAME']
-
+gpu_memory = os.environ['GPU_MEMORY']
 out_dir = Path("out") / save_name
 
 # Hyperparameters
@@ -47,13 +47,19 @@ else:
     raise ValueError("Invalid model name")
 if '4k' in model_name:
     micro_batch_size = micro_batch_size // 2 # 4k tokens
+    global_batch_size = global_batch_size // 2
 elif '8k' in model_name:
     micro_batch_size = micro_batch_size // 4 # 8k tokens
-if "2b_tokens" or "2b" in dataset_name:
+    global_batch_size = global_batch_size // 4
+
+if gpu_memory == '40960':
+    micro_batch_size = micro_batch_size // 2
+
+if "2b_tokens" in dataset_name or "2b" in dataset_name:
     max_step = 10000
-elif "20b_tokens" or "20b" in dataset_name:
+elif "20b_tokens" in dataset_name or "20b" in dataset_name:
     max_step = 40000
-elif dataset_name == "c4_news":
+elif "c4_news" in dataset_name or "wiki" in dataset_name:
     # around 9b tokens?
     max_step = 25000
 else:
@@ -61,7 +67,7 @@ else:
 warmup_steps = 2000
 log_step_interval = 10
 eval_iters = 100
-save_step_interval = 5000
+save_step_interval = max_step//10
 eval_step_interval = 500
 
 weight_decay = 1e-1
@@ -339,7 +345,7 @@ def create_dataloader(
             # n_chunks control the buffer size. 
             # Note that the buffer size also impacts the random shuffle
             # (PackedDataset is an IterableDataset. So the shuffle is done by prefetch a buffer and shuffle the buffer)
-            n_chunks=8,
+            n_chunks=8 if split == "train" else 2,
             block_size=block_size,
             shuffle=shuffle,
             seed=seed+fabric.global_rank,
