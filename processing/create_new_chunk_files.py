@@ -3,7 +3,7 @@ from graphs.utils import get_file_ids
 import argparse
 import glob
 import os
-
+import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -36,7 +36,7 @@ def get_num_chunks(files_dir):
 def write_jsonl(dir_path, documents, chunk_size=10000):
     """Write a list of documents to chunks of JSON Lines file."""
     num_chunks = len(documents) // chunk_size + 1
-    for i in range(num_chunks):
+    for i in tqdm.tqdm(range(num_chunks), desc = 'Writing chunks'):
         chunk_path = os.path.join(dir_path, f'chunk_{i}.jsonl')
         start = i * chunk_size
         end = min((i + 1) * chunk_size, len(documents))
