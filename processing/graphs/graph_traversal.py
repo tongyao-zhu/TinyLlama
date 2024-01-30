@@ -6,11 +6,11 @@ import time
 import datetime
 import tqdm
 from graph import Graph, Node
-from utils import read_trec_results, get_file_ids
+from utils import read_trec_results, get_file_ids, read_jsonl_files
 import os
 import numpy as np
 # write the traversal algorithm
-def max_tsp_traverse(graph: Graph, node_selection='min_degree'):
+def max_tsp_traverse(graph: Graph, node_selection='min_degree', max_path_length=21):
     traversal_paths = []
     curr_path = []
     visited = set()
@@ -41,6 +41,8 @@ def max_tsp_traverse(graph: Graph, node_selection='min_degree'):
             # visited.add(d_i.get_doc_id())
             num_visited += 1
             graph.delete_node(d_i.get_doc_id())
+            if len(curr_path) >= max_path_length:
+                break
 
         # finished one round of dfs
         traversal_paths.append(curr_path)
@@ -50,12 +52,15 @@ def max_tsp_traverse(graph: Graph, node_selection='min_degree'):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train_data_dir', type=str, required=True)
+    parser.add_argument('--save_dir', type=str, required=True)
     # parser.add_argument('--result_dir', type=str, default='/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/bm25_search_results/')
-    parser.add_argument('--adj_list_file', type=str, default='/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/adj_lists/')
+    parser.add_argument('--adj_list_file', type=str, required=True)
     parser.add_argument('--test', action='store_true')
     parser.add_argument('--degree_measure', type=str, default='all', choices=['all', 'in', 'out'])
     parser.add_argument('--node_selection', type=str, default='min_degree', choices=['min_degree', 'max_degree', 'random'])
     parser.add_argument("--undirected", default=False, action="store_true")
+    parser.add_argument("--top_k", required=True, type=int)
+    parser.add_argument("--max_path_length", required=True, type=int)
     return parser.parse_args()
 
 # def read_search_results():
@@ -90,11 +95,21 @@ def parse_args():
 #     result = read_trec_results(file_path)
 #     shared_dict.update(result)
 
-def main(args):
 
-    # get all file ids
-    train_file_path = args.train_data_dir
-    all_file_ids = get_file_ids(train_file_path)
+def main(args):
+    file_ids_file = os.path.join(args.save_dir, 'file_ids.json')
+
+    if os.path.exists(file_ids_file):
+        all_file_ids = json.load(open(file_ids_file))
+    else:
+        # get all file ids
+        train_file_path = args.train_data_dir
+        all_file_ids = get_file_ids(train_file_path)
+        print("In total there are", len(all_file_ids), "files")
+        # dump the file ids to a file
+        json.dump(list(all_file_ids), open(file_ids_file, 'w'))
+        print("Dumped file ids to", file_ids_file)
+
     if args.test:
         all_file_ids = list(all_file_ids)[:1000]
     # Add the documents as nodes
@@ -105,13 +120,29 @@ def main(args):
     print("Number of nodes:", graph.get_node_count())
 
     # TODO: migrate this function out of graph_traversal.py
-    # read the adjacency list
-    adj_list = json.load(open(args.adj_list_file))
-    for query_id, doc_score_lst in adj_list.items():
-        for doc_id, score in doc_score_lst:
-            graph.add_edge(graph.get_node(query_id), graph.get_node(doc_id), score, directed=not args.undirected)
+    if args.adj_list_file.endswith('.json'):
+        # read the adjacency list
+        adj_list = json.load(open(args.adj_list_file))
+    elif os.path.isdir(args.adj_list_file):
+        adj_list = read_jsonl_files(args.adj_list_file)
+    else:
+        raise ValueError("Invalid adj list file")
 
-    print("Number of edges:", len(graph.get_edges()))
+    num_edges = 0
+    for query_id, doc_score_lst in tqdm.tqdm(adj_list.items(), desc = "Adding edges"):
+        curr_count = 0
+        # add the edges
+        for doc_id, score in doc_score_lst:
+            if doc_id  == query_id:
+                # neighbor is the query itself, continue
+                continue
+            graph.add_edge(graph.get_node(query_id), graph.get_node(doc_id), score, directed=not args.undirected)
+            curr_count += 1
+            num_edges += 1
+            if curr_count >= args.top_k:
+                break
+
+    print("Number of edges:", num_edges)
     if args.node_selection == 'min_degree':
         graph.build_min_heap()
         print("Built min heap", len(graph.min_heap))
@@ -127,7 +158,7 @@ def main(args):
     # traverse the graph
     start_time = time.time()
     print("Start traversing the graph...")
-    result_paths = max_tsp_traverse(graph, node_selection=args.node_selection)
+    result_paths = max_tsp_traverse(graph, node_selection=args.node_selection, max_path_length = args.max_path_length)
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Time taken: {elapsed_time:.2f} seconds")
@@ -149,9 +180,9 @@ if __name__ == '__main__':
     formatted_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     path_name = args.adj_list_file.split('/')[-1].split('.')[0]
     path_name += '_test' if args.test else ''
+    path_name += f"_top{args.top_k}_max{args.max_path_length}"
     path_name += f'_{args.degree_measure}_degree_{args.node_selection}_selection'
     path_name += '_undirected' if args.undirected else ''
-    result_file_name = os.path.join(os.path.dirname(os.path.dirname(args.adj_list_file)),
-                                    "traversal_paths", f'result_path_{path_name}_{formatted_time}.json')
+    result_file_name = os.path.join(args.save_dir, f'result_path_{path_name}_{formatted_time}.json')
     print("Saving result to", result_file_name)
     json.dump(result_path, open(result_file_name, 'w'))
