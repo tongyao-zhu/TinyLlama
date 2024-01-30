@@ -62,12 +62,14 @@ elif "20b_tokens" in dataset_name or "20b" in dataset_name:
 elif "c4_news" in dataset_name or "wiki" in dataset_name:
     # around 9b tokens?
     max_step = 25000
+elif "cc" in dataset_name:
+    max_step = 50000 # 2 epochs on cc dataset
 else:
     raise ValueError("Invalid dataset name")
 warmup_steps = 2000
 log_step_interval = 10
 eval_iters = 100
-save_step_interval = max_step//10
+save_step_interval = min(max_step//1, 2500)
 eval_step_interval = 500
 
 weight_decay = 1e-1
@@ -107,19 +109,21 @@ wandb_logger = WandbLogger()
 
 
 def setup(
-    devices: int = 8,
+    num_devices: int = 1,
     train_data_dir: Path = Path("data/redpajama_sample"),
     val_data_dir: Optional[Path] = None,
     precision: Optional[str] = None,
     tpu: bool = False,
     resume: Union[bool, Path] = False,
+    eval_only: bool = False,
 ) -> None:
     precision = precision or get_default_supported_precision(training=True, tpu=tpu)
-
-    if devices > 1:
+    print("devices", num_devices, "precision", precision, "resume", resume, "eval_only", eval_only)
+    print("train_data_dir", train_data_dir, "val_data_dir", val_data_dir)
+    if num_devices > 1:
         if tpu:
             # For multi-host TPU training, the device count for Fabric is limited to the count on a single host.
-            devices = "auto"
+            num_devices = "auto"
             strategy = XLAStrategy(sync_module_states=False)
         else:
             strategy = FSDPStrategy(
@@ -131,14 +135,13 @@ def setup(
             )
     else:
         strategy = "auto"
-
-    fabric = L.Fabric(devices=devices, strategy=strategy, precision=precision, loggers=[logger, wandb_logger])
+    fabric = L.Fabric(devices=num_devices, strategy=strategy, precision=precision, loggers=[logger, wandb_logger])
     fabric.print(hparams)
     #fabric.launch(main, train_data_dir, val_data_dir, resume)
-    main(fabric, train_data_dir, val_data_dir, resume)
+    main(fabric, train_data_dir, val_data_dir, resume, eval_only)
 
 
-def main(fabric, train_data_dir, val_data_dir, resume):
+def main(fabric, train_data_dir, val_data_dir, resume, eval_only):
     monitor = Monitor(fabric, window_size=2, time_unit="seconds", log_iter_interval=log_iter_interval)
 
     if fabric.global_rank == 0:
@@ -187,18 +190,21 @@ def main(fabric, train_data_dir, val_data_dir, resume):
         fabric.load(resume, state)
 
     train_time = time.perf_counter()
-    train(fabric, state, train_dataloader, val_dataloader, monitor, resume)
+    train(fabric, state, train_dataloader, val_dataloader, monitor, resume, eval_only)
     fabric.print(f"Training time: {(time.perf_counter()-train_time):.2f}s")
     if fabric.device.type == "cuda":
         fabric.print(f"Memory used: {torch.cuda.max_memory_allocated() / 1e9:.02f} GB")
 
 
-def train(fabric, state, train_dataloader, val_dataloader, monitor, resume):
+def train(fabric, state, train_dataloader, val_dataloader, monitor, resume, eval_only=False):
     model = state["model"]
     optimizer = state["optimizer"]
 
     if val_dataloader is not None:
-        validate(fabric, model, val_dataloader)  # sanity check
+        loss = validate(fabric, model, val_dataloader)  # sanity check
+        print(f"Validation loss: {loss:.4f}, PPL: {math.exp(loss):.4f}")
+        if eval_only:
+            return
 
     with torch.device("meta"):
         meta_model = GPT(model.config)
@@ -300,7 +306,7 @@ def train(fabric, state, train_dataloader, val_dataloader, monitor, resume):
             fabric.log_dict({"metric/val_ppl": math.exp(val_loss.item()), "total_tokens": model.config.block_size * (state["iter_num"] + 1) * micro_batch_size * fabric.world_size}, state["step_count"])
             fabric.barrier()
         if not is_accumulating and state["step_count"] % save_step_interval == 0:
-            checkpoint_path = out_dir / f"iter-{state['iter_num']:06d}-ckpt.pth"
+            checkpoint_path = out_dir / f"iter-{state['iter_num']:06d}-ckpt-step-{state['step_count']}.pth"
             fabric.print(f"Saving checkpoint to {str(checkpoint_path)!r}")
             fabric.save(checkpoint_path, state)
 
@@ -345,7 +351,7 @@ def create_dataloader(
             # n_chunks control the buffer size. 
             # Note that the buffer size also impacts the random shuffle
             # (PackedDataset is an IterableDataset. So the shuffle is done by prefetch a buffer and shuffle the buffer)
-            n_chunks=8 if split == "train" else 2,
+            n_chunks=512 if split == "train" else 2,
             block_size=block_size,
             shuffle=shuffle,
             seed=seed+fabric.global_rank,
