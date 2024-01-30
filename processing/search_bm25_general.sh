@@ -3,14 +3,20 @@ export PATH=$PATH:$JAVA_HOME/bin
 
 CHUNK_NUM=$1
 echo "chunk num" $CHUNK_NUM
-VERSION=$2
+DATASET_NAME=$2
+QUERY_VERSION=$3
 #QUERY_PATH=/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/queries/chunk_$CHUNK_NUM.jsonl
 #OUT_PATH=/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/bm25_search_results/chunk_$CHUNK_NUM.result.txt
 #INDEX_PATH=/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/bm25_index
 
-QUERY_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$VERSION/queries/chunk_$CHUNK_NUM.jsonl
-OUT_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$VERSION/bm25_search_results/chunk_$CHUNK_NUM.result.txt
-INDEX_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$VERSION/bm25_index
+# check if output path exists
+if [ ! -d "/home/aiops/zhuty/ret_pretraining_data/id_added/$DATASET_NAME/bm25_search_results/$QUERY_VERSION" ]; then
+  mkdir /home/aiops/zhuty/ret_pretraining_data/id_added/$DATASET_NAME/bm25_search_results/$QUERY_VERSION
+fi
+
+QUERY_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$DATASET_NAME/queries/$QUERY_VERSION/chunk_$CHUNK_NUM.jsonl
+OUT_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$DATASET_NAME/bm25_search_results/$QUERY_VERSION/chunk_$CHUNK_NUM.result.txt
+INDEX_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$DATASET_NAME/bm25_index
 
 python -m pyserini.search.lucene \
   --index $INDEX_PATH \
@@ -20,6 +26,3 @@ python -m pyserini.search.lucene \
   --batch-size 768 \
   --threads 96 \
   --hits 100
-
-# sample usage:
-# bash processing/search_bm25.sh 0 redpajama_2b_id_added
