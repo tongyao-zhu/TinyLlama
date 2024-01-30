@@ -25,13 +25,13 @@ echo "The value for '$DATASET_NAME' is: ${result_path_file[$DATASET_NAME]}"
 
 mkdir /home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME/
 mkdir /home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME/train
-echo "Copying data to /home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME/valid"
-cp -r /home/aiops/zhuty/ret_pretraining_data/$BASE_DATA_NAME/valid /home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME/valid
-echo "finished copying data to /home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME/valid"
+# echo "Copying data to /home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME/valid"
+# cp -r /home/aiops/zhuty/ret_pretraining_data/$BASE_DATA_NAME/valid /home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME/valid
+# echo "finished copying data to /home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME/valid"
 # Reorder the data
 python create_new_chunk_files.py --result_path_file  ${result_path_file[$DATASET_NAME]} \
 --reordered_data_dir /home/aiops/zhuty/ret_pretraining_data/$DATASET_NAME/train/ \
---train_data_dir /home/aiops/zhuty/ret_pretraining_data/$BASE_DATA_NAME\_id_added/train/ \
+--train_data_dir /home/aiops/zhuty/ret_pretraining_data/id_added/$BASE_DATA_NAME/train/ \
 # run processing
 # please run this by yourself, the environment is not set up
 
