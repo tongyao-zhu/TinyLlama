@@ -1,12 +1,23 @@
 export WANDB_PROJECT=RetPretrain
 export WANDB_API_KEY=5723c6f7e50618fd5dd5a9c2dc2c293f293a25e6
 export DATASET_NAME=$2
+export VALID_DATASET_NAME=$3
 FULL_DATA_PATH=/home/aiops/zhuty/ret_pretraining_data/sample_processed/$DATASET_NAME
+VALID_DATA_PATH=/home/aiops/zhuty/ret_pretraining_data/sample_processed/$VALID_DATASET_NAME/valid
 export MODEL_NAME=$1
+export resume=$4
 
+# check if we need to resume
+if [[ $resume == "true" ]]; then
+  echo "Resuming from checkpoint"
+  export resume=true
+else
+  echo "Not resuming from checkpoint"
+  export resume=false
+fi
 
 # List of valid model names
-valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_8k" "tiny_LLaMA_360M") # Add more model names as needed
+valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_8k" "tiny_LLaMA_360M" "tiny_LLaMA_360M_4k" "tiny_LLaMA_360M_8k") # Add more model names as needed
 
 # Function to check if a model name is valid
 is_valid_model() {
@@ -25,6 +36,7 @@ if ! is_valid_model "$MODEL_NAME"; then
     exit 1
 fi
 
+export GPU_MEMORY=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits -i 0)
 export WANDB_NAME=$MODEL_NAME\_$DATASET_NAME
 export NUMBER_OF_GPU=$(python -c "import torch; print(torch.cuda.device_count())")
 export WANDB_TAGS="pretraining,$DATASET_NAME,$MODEL_NAME"
@@ -38,9 +50,10 @@ lightning run model \
     --accelerator=cuda \
     --num-nodes=1 \
     --devices=$NUMBER_OF_GPU \
-    pretrain/tinyllama.py --devices $NUMBER_OF_GPU \
+    pretrain/tinyllama.py --num_devices $NUMBER_OF_GPU \
     --train_data_dir $FULL_DATA_PATH \
-    --val_data_dir $FULL_DATA_PATH
+    --val_data_dir $VALID_DATA_PATH \
+    --resume $resume
 
 # sample usage
 # bash scripts/pretraining.sh redpajama_2b
