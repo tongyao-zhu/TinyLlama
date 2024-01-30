@@ -1,4 +1,15 @@
 {"reordered_top100_v1": "/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/traversal_paths/result_path_adj_lst_top_100_out_degree_min_degree_selection_undirected_20240103_140009.json",
 "reordered_top100_2b_tokens_v2": "/home/aiops/zhuty/ret_pretraining_data/redpajama_2b_id_added/traversal_paths/result_path_adj_lst_top_100_all_degree_min_degree_selection_20240103_130057.json",
-  "reord_top100_20b_tokens_v1": "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/traversal_paths/result_path_adj_lst_top_100_all_degree_min_degree_selection_undirected_20240107_233705.json"
+"dense_reord_top100_rp_2b_tokens": "/home/aiops/zhuty/ret_pretraining_data/id_added/redpajama_2b/traversal_paths/dense/result_path_adj_lst_top_100_all_degree_min_degree_selection_undirected_20240115_132632.json",
+  "merged_dense_reord_top100_rp_2b_tokens": "/home/aiops/zhuty/ret_pretraining_data/id_added/redpajama_2b/traversal_paths/dense/result_path_adj_lst_top_100_all_degree_min_degree_selection_undirected_20240115_132632.json.merged",
+  "mdense_top10_v1_rp_2b_tokens": "/home/aiops/zhuty/ret_pretraining_data/id_added/redpajama_2b/traversal_paths/dense_first/result_path_adj_lst_top_100_top10_max21_all_degree_min_degree_selection_undirected_20240119_033810_merged_csize21_k100.json",
+  "reord_top100_20b_tokens_v1": "/home/aiops/zhuty/ret_pretraining_data/redpajama_20b_id_added/traversal_paths/result_path_adj_lst_top_100_all_degree_min_degree_selection_undirected_20240107_233705.json",
+  "enwiki_top100_v1": "/home/aiops/zhuty/ret_pretraining_data/id_added/rpwiki_en/traversal_paths/result_path_adj_lst_top_100_all_degree_random_selection_undirected_20240110_120141.json",
+    "enwiki_top100_v2": "/home/aiops/zhuty/ret_pretraining_data/id_added/rpwiki_en/traversal_paths/result_path_adj_lst_top_100_out_degree_min_degree_selection_20240110_121843.json",
+    "c4_news_top100_v1": "/home/aiops/zhuty/ret_pretraining_data/id_added/c4_news/traversal_paths/result_path_adj_lst_top_100_all_degree_random_selection_undirected_20240110_083616.json",
+    "c4_news_top10_dense_v1": "/home/aiops/zhuty/ret_pretraining_data/id_added/c4_news/traversal_paths/dense_first/result_path_adj_lists_all_degree_random_selection_undirected_20240117_161014.json",
+    "c4_news_top100_dense_v1": "/home/aiops/zhuty/ret_pretraining_data/id_added/c4_news/traversal_paths/dense_first/result_path_adj_lists_top100_all_degree_min_degree_selection_undirected_20240118_002742.json",
+    "c4_news_top100_merged_v2": "/home/aiops/zhuty/ret_pretraining_data/id_added/c4_news/traversal_paths/dense_first/result_path_adj_lists_top100_max21_all_degree_random_selection_undirected_20240119_033720_merged_csize21_k100.json",
+    "c4_news_top100_merged_v3": "/home/aiops/zhuty/ret_pretraining_data/id_added/c4_news/traversal_paths/dense_first/result_path_adj_lists_top100_max21_all_degree_random_selection_undirected_20240119_033720_merged_csize21_k100.json",
+  "cc_merged_v1": "/home/aiops/zhuty/ret_pretraining_data/id_added/cc/traversal_paths/dense_keep/result_path_adj_lists_top10_max21_all_degree_random_selection_undirected_20240127_121754_merged_csize21_k100.json"
 }
