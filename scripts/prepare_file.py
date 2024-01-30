@@ -30,7 +30,8 @@ def prepare_full(
     shortname: str = "ind",
     split: str="train",
     filenames_subset: List[str] = None,
-    process_id: int = 0
+    process_id: int = 0,
+    text_key: str = "text",
 ) -> None:
     destination_path.mkdir(parents=True, exist_ok=True)
 
@@ -58,7 +59,7 @@ def prepare_full(
         print(f"Processing {filepath}")
         with open(filepath, "r", encoding="utf-8") as f:
             for row in tqdm(f):
-                text = json.loads(row)["text"]
+                text = json.loads(row)[text_key]
                 text_ids = tokenizer.encode(text)
                 builder.add_array(np.array(text_ids, dtype=builder.dtype))
 
@@ -76,20 +77,25 @@ def prepare(
     chunk_size: int = 2049 * 1024,
     split: str="train",
     percentage: float = 1.0,
+    text_key: str = "text",
 ) -> None:
     import time
 
     filenames = glob.glob(os.path.join(source_path, slimpajama_sets[split]), recursive=True)
     filenames = filenames[:int(len(filenames) * percentage)]
     
-    num_processes = min(cpu_count(), len(filenames))
+    # num_processes = min(cpu_count(), len(filenames))
+    if split == 'train':
+        num_processes = 32
+    if split == "valid":
+        num_processes = 10 # make a small
     chunked_filenames = np.array_split(filenames, num_processes)
 
     processes = []
     start_time = time.time()
 
     for i, subset in enumerate(chunked_filenames):
-        p = Process(target=prepare_full, args=(source_path, tokenizer_path, destination_path, chunk_size, short_name, split, list(subset), i))
+        p = Process(target=prepare_full, args=(source_path, tokenizer_path, destination_path, chunk_size, short_name, split, list(subset), i, text_key))
         processes.append(p)
         p.start()
 
