@@ -15,6 +15,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", required=True)
     parser.add_argument("--search_type", required=True)
+    parser.add_argument("--query_type", required=True)
     return parser.parse_args()
 
 
@@ -22,8 +23,9 @@ args = parse_args()
 
 version = args.version
 search_type = args.search_type
-result_dir = f"/home/aiops/zhuty/ret_pretraining_data/id_added/{version}/{search_type}_search_results/"
-queries_dir = f"/home/aiops/zhuty/ret_pretraining_data/id_added/{version}/queries/"
+query_type = args.query_type
+result_dir = f"/home/aiops/zhuty/ret_pretraining_data/id_added/{version}/{search_type}_search_results/{query_type}"
+queries_dir = f"/home/aiops/zhuty/ret_pretraining_data/id_added/{version}/queries/{query_type}"
 TEST = False
 
 def read_search_results():
