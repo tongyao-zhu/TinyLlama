@@ -1,5 +1,6 @@
 import argparse
 import os
+from typing import Dict, Tuple
 
 eval_args = argparse.ArgumentParser()
 eval_args.add_argument("--model_path", type=str, required=True)
@@ -188,7 +189,8 @@ def cbqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max
                             seed)
     all_pred_ans = [pred.split("\n")[0] for pred in all_pred_ans]
     em_score = eval_generation_em(test_data, all_pred_ans) * 100
-    return {"score": em_score}
+    prompts_and_preds = {"prompts": prompt_list, "preds": all_pred_ans}
+    return {"score": em_score}, prompts_and_preds
 
 
 def get_sampled_demonstrations(train_data, n_shot, seed):
@@ -205,7 +207,7 @@ def get_agnews_prompt(input_example, demonstrations, label2str):
     return prompt
 
 
-def agnews_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def agnews_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size)-> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 4
     train_data = load_jsonl(TASK_DATA_PATH[task]["train"])
     test_data = load_jsonl(TASK_DATA_PATH[task]["test"])
@@ -217,7 +219,7 @@ def agnews_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, m
         prompt_list.append({"prompt": get_agnews_prompt(test_data[idx], demonstrations, label2str)})
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
-    return {"score": score}
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
 
 
 def get_amazon_prompt(input_example, demonstrations, label2str):
@@ -228,7 +230,7 @@ def get_amazon_prompt(input_example, demonstrations, label2str):
     return prompt
 
 
-def amazon_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def amazon_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 3
     train_data = load_jsonl(TASK_DATA_PATH["amazon"]["train"])
     test_data = load_jsonl(TASK_DATA_PATH["amazon"]["test"])
@@ -243,7 +245,7 @@ def amazon_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, m
         prompt_list.append({"prompt": get_amazon_prompt(test_data[idx], demonstrations, label2str)})
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
-    return {"score": score}
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
 
 
 def get_dbpedia_prompt(input_example, demonstrations, label2str):
@@ -254,7 +256,7 @@ def get_dbpedia_prompt(input_example, demonstrations, label2str):
     return prompt
 
 
-def dbpedia_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def dbpedia_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     names = ["Company", "EducationalInstitution", "Artist", "Athlete", "OfficeHolder", "MeanOfTransportation",
              "Building", "NaturalPlace", "Village", "Animal", "Plant", "Album", "Film", "WrittenWork", ]
     generation_kwargs["max_new_tokens"] = 8
@@ -271,7 +273,7 @@ def dbpedia_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, 
         prompt_list.append({"prompt": get_dbpedia_prompt(test_data[idx], demonstrations, label2str)})
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
-    return {"score": score}
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
 
 
 def get_yelp_prompt(input_example, demonstrations, label2str):
@@ -282,7 +284,7 @@ def get_yelp_prompt(input_example, demonstrations, label2str):
     return prompt
 
 
-def yelp_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def yelp_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 3
     train_data = load_jsonl(TASK_DATA_PATH["yelp"]["train"])
     test_data = load_jsonl(TASK_DATA_PATH["yelp"]["test"])
@@ -297,7 +299,7 @@ def yelp_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max
         prompt_list.append({"prompt": get_yelp_prompt(test_data[idx], demonstrations, label2str)})
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
-    return {"score": score}
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
 
 
 def get_sst2_prompt(input_example, demonstrations, label2str):
@@ -308,7 +310,7 @@ def get_sst2_prompt(input_example, demonstrations, label2str):
     return prompt
 
 
-def sst2_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def sst2_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 3
     train_data = load_jsonl(TASK_DATA_PATH[task]["train"])
     test_data = load_jsonl(TASK_DATA_PATH[task]["test"])
@@ -320,7 +322,7 @@ def sst2_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max
         prompt_list.append({"prompt": get_sst2_prompt(test_data[idx], demonstrations, label2str)})
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
-    return {"score": score}
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
 
 
 def get_tweet_hate_prompt(input_example, demonstrations, label2str):
@@ -331,7 +333,7 @@ def get_tweet_hate_prompt(input_example, demonstrations, label2str):
     return prompt
 
 
-def tweet_hate_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def tweet_hate_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 6
     train_data = load_jsonl(TASK_DATA_PATH["tweet_hate"]["train"])
     test_data = load_jsonl(TASK_DATA_PATH["tweet_hate"]["test"])
@@ -343,10 +345,10 @@ def tweet_hate_evaluation(model, tokenizer, generation_kwargs, task, n_shot, see
         prompt_list.append({"prompt": get_tweet_hate_prompt(test_data[idx], demonstrations, label2str)})
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
-    return {"score": score}
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
 
 
-def tweet_offensive_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def tweet_offensive_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 6
     train_data = load_jsonl(TASK_DATA_PATH["tweet_offensive"]["train"])
     test_data = load_jsonl(TASK_DATA_PATH["tweet_offensive"]["test"])
@@ -358,7 +360,7 @@ def tweet_offensive_evaluation(model, tokenizer, generation_kwargs, task, n_shot
         prompt_list.append({"prompt": get_tweet_hate_prompt(test_data[idx], demonstrations, label2str)})
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
-    return {"score": score}
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
 
 
 def get_obqa_demonstration(train_data, n_shot, seed):
@@ -393,7 +395,7 @@ def get_nq_obqa_prompt(input_example, demonstrations):
     return prompt
 
 
-def nq_obqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def nq_obqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 16
     train_data = load_json(TASK_DATA_PATH["nq_obqa"]["validation"])
     data = load_json(TASK_DATA_PATH["nq_obqa"]["test"])
@@ -405,7 +407,7 @@ def nq_obqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, 
                             seed)
     all_pred_ans = [pred.split("\n")[0] for pred in all_pred_ans]
     em_score = eval_generation_em_answers(data, all_pred_ans) * 100
-    return {"score": em_score}
+    return {"score": em_score}, {"prompts": prompt_list, "preds": all_pred_ans}
 
 
 def get_hotpotqa_prompt(input_example, demonstrations):
@@ -423,7 +425,7 @@ def get_hotpotqa_prompt(input_example, demonstrations):
     return prompt
 
 
-def hotpotqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def hotpotqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 20
     train_data = load_json(TASK_DATA_PATH["hotpotqa"]["train"])
     data = load_json(TASK_DATA_PATH["hotpotqa"]["validation"])
@@ -438,7 +440,7 @@ def hotpotqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed,
         if exact_match_score(pred, item["answer"]):
             correct_cnt += 1
     em_score = correct_cnt / len(data) * 100
-    return {"score": em_score}
+    return {"score": em_score}, {"prompts": prompt_list, "preds": all_pred}
 
 
 def get_squad_prompt(input_example, demonstrations):
@@ -449,7 +451,7 @@ def get_squad_prompt(input_example, demonstrations):
     return prompt
 
 
-def squad_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def squad_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 16
     train_data = load_jsonl(TASK_DATA_PATH["squad"]["train"])
     test_data = load_jsonl(TASK_DATA_PATH["squad"]["validation"])
@@ -465,7 +467,7 @@ def squad_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, ma
         if exact_match_score_with_multiple_candidates(pred, targets):
             correct_cnt += 1
     acc = correct_cnt / len(test_data) * 100
-    return {"score": acc}
+    return {"score": acc}, {"prompts": prompt_list, "preds": predictions}
 
 
 def get_tq_obqa_prompt(input_example, demonstrations):
@@ -487,7 +489,7 @@ def get_tq_obqa_prompt(input_example, demonstrations):
     return prompt
 
 
-def tq_obqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+def tq_obqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 16
     train_data = load_json(TASK_DATA_PATH["tq_obqa"]["train"])
     data = load_json(TASK_DATA_PATH["tq_obqa"]["test"])
@@ -498,7 +500,7 @@ def tq_obqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, 
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     predictions = [pred.split("\n")[0] for pred in predictions]
     em_score = eval_generation_em_answers(data, predictions) * 100
-    return {"score": em_score}
+    return {"score": em_score}, {"prompts": prompt_list, "preds": predictions}
 
 
 def metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=None, normalise_target=None):
@@ -566,8 +568,18 @@ def main():
     model = model.cuda()
 
     evaluation = eval_callables[eval_args.task]
-
-    score = evaluation(model, tokenizer, generation_kwargs, eval_args.task, eval_args.n_shot,
+    if "/home/aiops/" in eval_args.model_path:
+        # if running on local path
+        save_path = "-".join(eval_args.model_path.split("/")[-2:])
+    else:
+        save_path = eval_args.model_path.split("/")[-1].replace("_iter", "-iter")
+    # mke sure the outputs folder exists
+    os.makedirs(f"./outputs/{save_path}", exist_ok=True)
+    task_save_path = f"./outputs/{save_path}/{eval_args.task}_{eval_args.n_shot}_{eval_args.seed}.json"
+    if os.path.exists(task_save_path):
+        logger.info(f"{task_save_path} exists, skipping...")
+        return
+    score, prompts_and_preds = evaluation(model, tokenizer, generation_kwargs, eval_args.task, eval_args.n_shot,
                        eval_args.seed, eval_args.max_length - 5, eval_args.batch_size)
     results.update(score)
     results = json.dumps(results)
@@ -575,6 +587,10 @@ def main():
     with open("./outputs/logs", "a") as fn:
         fn.write(results + "\n")
 
+    with open(task_save_path, "w") as fn:
+        fn.write(results)
+    with open(task_save_path.replace(".json", "_prompts_and_preds.json"), "w") as fn:
+        json.dump(prompts_and_preds, fn, indent=4)
 
 if __name__ == '__main__':
     main()
