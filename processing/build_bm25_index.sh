@@ -6,7 +6,7 @@ export PATH=$PATH:$JAVA_HOME/bin
 VERSION=$1
 
 INPUT_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$VERSION/train
-INDEX_PATH=/home/aiops/zhuty/ret_pretraining_data//id_added/$VERSION/bm25_index
+INDEX_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$VERSION/bm25_index
 python -m pyserini.index.lucene \
   --collection JsonCollection \
   --input $INPUT_PATH \
