@@ -15,7 +15,12 @@ export GPU_MEMORY=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,no
 if [[ $GPU_MEMORY == 81920 ]]; then
   BATCH_SIZE=96
 else
-  BATCH_SIZE=48
+  BATCH_SIZE=24
+fi
+
+if [[ $MODEL_NAME == *"tiny_LLaMA_120M_8k"* ]]; then
+  # increse batc size for two times
+  BATCH_SIZE=64
 fi
 
 echo "Using $BATCH_SIZE batch size"

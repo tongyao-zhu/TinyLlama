@@ -66,6 +66,17 @@ def add_input_text(example, last_tokens=300):
     example['text'] = text
     return example
 
+def truncate_text(example, truncate_mode, tokenizer, max_length=512):
+    tokens = tokenizer.encode(example['title'], return_tensors="pt")
+    if truncate_mode == "last":
+        tokens = tokens[0, -max_length:]
+    elif truncate_mode == "first":
+        tokens = tokens[0, :max_length]
+    else:
+        raise ValueError("Invalid truncate mode")
+    example['text'] = tokenizer.decode(tokens)
+    return example
+
 
 set_seed(42)
 args = parse_args()
@@ -80,13 +91,7 @@ if os.path.exists(filename):
 # dataset = PretrainDataset(args.train_data_dir)
 # Load the dataset
 dataset = load_dataset('json', data_files={'train': args.train_data_dir + f'/chunk_{args.chunk_num}.jsonl'})['train']
-# if a text is too long, only keep the last 1000 char
-dataset = dataset.map(add_input_text, batched=False)
 
-print("Loaded dataset", dataset)
-
-if args.first_x>=0:
-    dataset = dataset.select(range(0, args.first_x))
 
 if 't5' in args.model_name:
     pipeline_name = 'text2text-generation'
@@ -94,11 +99,13 @@ if 't5' in args.model_name:
 else:
     pipeline_name = "text-generation"
     if "llama" in args.model_name.lower():
+        print("Using LlamaForCausalLM")
         model = LlamaForCausalLM.from_pretrained(args.model_name)
+        # tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf", use_fast=True, truncation=True, max_length=196)
         tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf", use_fast=True)
     else:
         model = AutoModelForCausalLM.from_pretrained(args.model_name)
-        tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+        tokenizer = AutoTokenizer.from_pretrained(args.model_name, truncation=False, max_length=196)
 
     # print number of parameters
     print("Number of parameters", model.num_parameters())
@@ -106,11 +113,16 @@ else:
     tokenizer.pad_token_id = model.config.eos_token_id
     tokenizer.padding_side = "left"
 
-    pipe = pipeline('text-generation', model=model, device="cuda", tokenizer=tokenizer, return_full_text=False,max_new_tokens=96,
+    pipe = pipeline('text-generation', model=model, device="cuda", tokenizer=tokenizer, return_full_text=False,max_new_tokens=80,
                     num_return_sequences=3, min_new_tokens=16,
                          do_sample=True, temperature=0.6, top_k=5000)
 
 
+    # if a text is too long, only keep the last 1000 char
+    dataset = dataset.map(lambda x: truncate_text(x, truncate_mode="last", tokenizer=tokenizer), batched=False)
+    print("Truncated dataset", dataset[:5])
+    if args.first_x >= 0:
+        dataset = dataset.select(range(0, args.first_x))
 
 results = []
 # KeyDataset (only *pt*) will simply return the item in the dict returned by the dataset item
@@ -119,7 +131,6 @@ for out in tqdm(pipe(KeyDataset(dataset, "text"), batch_size=args.batch_size), t
     results.append(out)
 
 # print(results[:10], dataset[:10])
-
 
 
 # write to jsonl, each line is a json
