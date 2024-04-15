@@ -1,0 +1,24 @@
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_8k iter-080000-ckpt-step-20000 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_8k iter-120000-ckpt-step-30000 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_8k iter-160000-ckpt-step-40000 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_8k iter-190000-ckpt-step-47500 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_merged_v1_8k iter-080000-ckpt-step-20000 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_merged_v1_8k iter-120000-ckpt-step-30000 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_merged_v1_8k iter-160000-ckpt-step-40000 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_merged_v1_8k iter-190000-ckpt-step-47500 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_merged_v2_8k iter-080000-ckpt-step-20000 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_merged_v2_8k iter-120000-ckpt-step-30000 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_merged_v2_8k iter-160000-ckpt-step-40000 '
+        
+ sailctl job create eval360m -g 1 --debug --image asia-docker.pkg.dev/sail-tpu-02/git-insea-io/common/image_registry/liuqian/tinyllama:v9   --command-line-args  ' bash tinyllama/scripts/evaluation/run_evaluation_ckpt.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_merged_v2_8k iter-190000-ckpt-step-47500 '
+        
