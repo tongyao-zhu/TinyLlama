@@ -1,0 +1,1333 @@
+,results,group_subtasks,configs,versions,n-shot,config,git_hash,pretty_env_info,transformers_version,upper_git_hash,eval_loss_arxiv,eval_loss_book,eval_loss_cc,eval_loss_rpwiki_en,name,ds
+0,"{'lambada_openai': {'perplexity,none': 235.22141881960945, 'perplexity_stderr,none': 11.093979574981278, 'acc,none': 0.1558315544343101, 'acc_stderr,none': 0.005053058561914845, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.27853017327225654, 'acc_stderr,none': 0.00447359565080763, 'acc_norm,none': 0.28560047799243177, 'acc_norm_stderr,none': 0.004507768029590051, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_8k/iter-080000-ckpt-step-20000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-77-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   48 bits physical, 48 bits virtual
+CPU(s):                          96
+On-line CPU(s) list:             0-95
+Thread(s) per core:              2
+Core(s) per socket:              24
+Socket(s):                       2
+NUMA node(s):                    8
+Vendor ID:                       AuthenticAMD
+CPU family:                      23
+Model:                           49
+Model name:                      AMD EPYC 7352 24-Core Processor
+Stepping:                        0
+CPU MHz:                         3117.988
+BogoMIPS:                        4591.29
+Virtualization:                  AMD-V
+L1d cache:                       1.5 MiB
+L1i cache:                       1.5 MiB
+L2 cache:                        24 MiB
+L3 cache:                        256 MiB
+NUMA node0 CPU(s):               0-5,48-53
+NUMA node1 CPU(s):               6-11,54-59
+NUMA node2 CPU(s):               12-17,60-65
+NUMA node3 CPU(s):               18-23,66-71
+NUMA node4 CPU(s):               24-29,72-77
+NUMA node5 CPU(s):               30-35,78-83
+NUMA node6 CPU(s):               36-41,84-89
+NUMA node7 CPU(s):               42-47,90-95
+Vulnerability Itlb multihit:     Not affected
+Vulnerability L1tf:              Not affected
+Vulnerability Mds:               Not affected
+Vulnerability Meltdown:          Not affected
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:        Mitigation; Full AMD retpoline, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling
+Vulnerability Srbds:             Not affected
+Vulnerability Tsx async abort:   Not affected
+Flags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.7805285453796387,3.049628734588623,2.743060827255249,2.8490099906921387,120M_cc_8k_iter-080000-ckpt-step-20000,cc_8k
+1,"{'lambada_openai': {'perplexity,none': 167.29958659676652, 'perplexity_stderr,none': 7.704568547041802, 'acc,none': 0.18494081117795458, 'acc_stderr,none': 0.0054090752820952544, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.2822146982672774, 'acc_stderr,none': 0.00449157453944188, 'acc_norm,none': 0.29346743676558457, 'acc_norm_stderr,none': 0.0045442013590746245, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_8k/iter-160000-ckpt-step-40000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-77-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   48 bits physical, 48 bits virtual
+CPU(s):                          96
+On-line CPU(s) list:             0-95
+Thread(s) per core:              2
+Core(s) per socket:              24
+Socket(s):                       2
+NUMA node(s):                    8
+Vendor ID:                       AuthenticAMD
+CPU family:                      23
+Model:                           49
+Model name:                      AMD EPYC 7352 24-Core Processor
+Stepping:                        0
+CPU MHz:                         3107.028
+BogoMIPS:                        4591.29
+Virtualization:                  AMD-V
+L1d cache:                       1.5 MiB
+L1i cache:                       1.5 MiB
+L2 cache:                        24 MiB
+L3 cache:                        256 MiB
+NUMA node0 CPU(s):               0-5,48-53
+NUMA node1 CPU(s):               6-11,54-59
+NUMA node2 CPU(s):               12-17,60-65
+NUMA node3 CPU(s):               18-23,66-71
+NUMA node4 CPU(s):               24-29,72-77
+NUMA node5 CPU(s):               30-35,78-83
+NUMA node6 CPU(s):               36-41,84-89
+NUMA node7 CPU(s):               42-47,90-95
+Vulnerability Itlb multihit:     Not affected
+Vulnerability L1tf:              Not affected
+Vulnerability Mds:               Not affected
+Vulnerability Meltdown:          Not affected
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:        Mitigation; Full AMD retpoline, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling
+Vulnerability Srbds:             Not affected
+Vulnerability Tsx async abort:   Not affected
+Flags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.671818733215332,2.9739863872528076,2.665034055709839,2.779592275619507,120M_cc_8k_iter-160000-ckpt-step-40000,cc_8k
+2,"{'lambada_openai': {'perplexity,none': 138.80368585159255, 'perplexity_stderr,none': 6.094544934655715, 'acc,none': 0.18726955171744614, 'acc_stderr,none': 0.0054352424762664974, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.28141804421429994, 'acc_stderr,none': 0.004487718843330282, 'acc_norm,none': 0.29934276040629354, 'acc_norm_stderr,none': 0.004570342034463192, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_8k/iter-240000-ckpt-step-60000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-77-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   48 bits physical, 48 bits virtual
+CPU(s):                          96
+On-line CPU(s) list:             0-95
+Thread(s) per core:              2
+Core(s) per socket:              24
+Socket(s):                       2
+NUMA node(s):                    8
+Vendor ID:                       AuthenticAMD
+CPU family:                      23
+Model:                           49
+Model name:                      AMD EPYC 7352 24-Core Processor
+Stepping:                        0
+CPU MHz:                         3093.165
+BogoMIPS:                        4591.29
+Virtualization:                  AMD-V
+L1d cache:                       1.5 MiB
+L1i cache:                       1.5 MiB
+L2 cache:                        24 MiB
+L3 cache:                        256 MiB
+NUMA node0 CPU(s):               0-5,48-53
+NUMA node1 CPU(s):               6-11,54-59
+NUMA node2 CPU(s):               12-17,60-65
+NUMA node3 CPU(s):               18-23,66-71
+NUMA node4 CPU(s):               24-29,72-77
+NUMA node5 CPU(s):               30-35,78-83
+NUMA node6 CPU(s):               36-41,84-89
+NUMA node7 CPU(s):               42-47,90-95
+Vulnerability Itlb multihit:     Not affected
+Vulnerability L1tf:              Not affected
+Vulnerability Mds:               Not affected
+Vulnerability Meltdown:          Not affected
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:        Mitigation; Full AMD retpoline, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling
+Vulnerability Srbds:             Not affected
+Vulnerability Tsx async abort:   Not affected
+Flags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.6223950386047363,2.9198012351989746,2.621454954147339,2.7233052253723145,120M_cc_8k_iter-240000-ckpt-step-60000,cc_8k
+3,"{'lambada_openai': {'perplexity,none': 111.81454852437216, 'perplexity_stderr,none': 4.7501927555414145, 'acc,none': 0.19580826702891518, 'acc_stderr,none': 0.0055285009282794685, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.2833100975901215, 'acc_stderr,none': 0.004496847773250695, 'acc_norm,none': 0.2997410874327823, 'acc_norm_stderr,none': 0.004572081656965673, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_8k/iter-320000-ckpt-step-80000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-77-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   48 bits physical, 48 bits virtual
+CPU(s):                          96
+On-line CPU(s) list:             0-95
+Thread(s) per core:              2
+Core(s) per socket:              24
+Socket(s):                       2
+NUMA node(s):                    8
+Vendor ID:                       AuthenticAMD
+CPU family:                      23
+Model:                           49
+Model name:                      AMD EPYC 7352 24-Core Processor
+Stepping:                        0
+CPU MHz:                         3093.664
+BogoMIPS:                        4591.29
+Virtualization:                  AMD-V
+L1d cache:                       1.5 MiB
+L1i cache:                       1.5 MiB
+L2 cache:                        24 MiB
+L3 cache:                        256 MiB
+NUMA node0 CPU(s):               0-5,48-53
+NUMA node1 CPU(s):               6-11,54-59
+NUMA node2 CPU(s):               12-17,60-65
+NUMA node3 CPU(s):               18-23,66-71
+NUMA node4 CPU(s):               24-29,72-77
+NUMA node5 CPU(s):               30-35,78-83
+NUMA node6 CPU(s):               36-41,84-89
+NUMA node7 CPU(s):               42-47,90-95
+Vulnerability Itlb multihit:     Not affected
+Vulnerability L1tf:              Not affected
+Vulnerability Mds:               Not affected
+Vulnerability Meltdown:          Not affected
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:        Mitigation; Full AMD retpoline, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling
+Vulnerability Srbds:             Not affected
+Vulnerability Tsx async abort:   Not affected
+Flags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.5624377727508545,2.880958080291748,2.5883922576904297,2.701349973678589,120M_cc_8k_iter-320000-ckpt-step-80000,cc_8k
+4,"{'lambada_openai': {'perplexity,none': 110.82834415450597, 'perplexity_stderr,none': 4.694901096025043, 'acc,none': 0.19949543954977683, 'acc_stderr,none': 0.005567503056582415, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.2826130252937662, 'acc_stderr,none': 0.004493495872000061, 'acc_norm,none': 0.3013343955387373, 'acc_norm_stderr,none': 0.004578999029127926, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_8k/iter-400000-ckpt-step-100000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-81-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   48 bits physical, 48 bits virtual
+CPU(s):                          96
+On-line CPU(s) list:             0-95
+Thread(s) per core:              2
+Core(s) per socket:              24
+Socket(s):                       2
+NUMA node(s):                    8
+Vendor ID:                       AuthenticAMD
+CPU family:                      23
+Model:                           49
+Model name:                      AMD EPYC 7352 24-Core Processor
+Stepping:                        0
+CPU MHz:                         3094.462
+BogoMIPS:                        4591.05
+Virtualization:                  AMD-V
+L1d cache:                       1.5 MiB
+L1i cache:                       1.5 MiB
+L2 cache:                        24 MiB
+L3 cache:                        256 MiB
+NUMA node0 CPU(s):               0-5,48-53
+NUMA node1 CPU(s):               6-11,54-59
+NUMA node2 CPU(s):               12-17,60-65
+NUMA node3 CPU(s):               18-23,66-71
+NUMA node4 CPU(s):               24-29,72-77
+NUMA node5 CPU(s):               30-35,78-83
+NUMA node6 CPU(s):               36-41,84-89
+NUMA node7 CPU(s):               42-47,90-95
+Vulnerability Itlb multihit:     Not affected
+Vulnerability L1tf:              Not affected
+Vulnerability Mds:               Not affected
+Vulnerability Meltdown:          Not affected
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:        Mitigation; Full AMD retpoline, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling
+Vulnerability Srbds:             Not affected
+Vulnerability Tsx async abort:   Not affected
+Flags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.5389459133148193,2.8655476570129395,2.5724198818206787,2.694429874420166,120M_cc_8k_iter-400000-ckpt-step-100000,cc_8k
+5,"{'lambada_openai': {'perplexity,none': 292.54441974207964, 'perplexity_stderr,none': 14.104614982439015, 'acc,none': 0.15253250533669707, 'acc_stderr,none': 0.005009043454985102, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.27325234017128064, 'acc_stderr,none': 0.0044471858833274045, 'acc_norm,none': 0.287293367855009, 'acc_norm_stderr,none': 0.004515748192605694, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_merged_v1_8k/iter-080000-ckpt-step-20000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-81-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   48 bits physical, 48 bits virtual
+CPU(s):                          96
+On-line CPU(s) list:             0-95
+Thread(s) per core:              2
+Core(s) per socket:              24
+Socket(s):                       2
+NUMA node(s):                    8
+Vendor ID:                       AuthenticAMD
+CPU family:                      23
+Model:                           49
+Model name:                      AMD EPYC 7352 24-Core Processor
+Stepping:                        0
+CPU MHz:                         2847.442
+BogoMIPS:                        4591.05
+Virtualization:                  AMD-V
+L1d cache:                       1.5 MiB
+L1i cache:                       1.5 MiB
+L2 cache:                        24 MiB
+L3 cache:                        256 MiB
+NUMA node0 CPU(s):               0-5,48-53
+NUMA node1 CPU(s):               6-11,54-59
+NUMA node2 CPU(s):               12-17,60-65
+NUMA node3 CPU(s):               18-23,66-71
+NUMA node4 CPU(s):               24-29,72-77
+NUMA node5 CPU(s):               30-35,78-83
+NUMA node6 CPU(s):               36-41,84-89
+NUMA node7 CPU(s):               42-47,90-95
+Vulnerability Itlb multihit:     Not affected
+Vulnerability L1tf:              Not affected
+Vulnerability Mds:               Not affected
+Vulnerability Meltdown:          Not affected
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:        Mitigation; Full AMD retpoline, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling
+Vulnerability Srbds:             Not affected
+Vulnerability Tsx async abort:   Not affected
+Flags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.8044848442077637,3.0494558811187744,2.7423653602600098,2.8349435329437256,120M_cc_merged_v1_8k_iter-080000-ckpt-step-20000,cc_merged_v1_8k
+6,"{'lambada_openai': {'perplexity,none': 181.37621132048858, 'perplexity_stderr,none': 8.533085652716121, 'acc,none': 0.19173297108480497, 'acc_stderr,none': 0.005484510920017705, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.2787293367855009, 'acc_stderr,none': 0.004474577054517468, 'acc_norm,none': 0.2932682732523402, 'acc_norm_stderr,none': 0.004543299338935433, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_merged_v1_8k/iter-160000-ckpt-step-40000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-81-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   48 bits physical, 48 bits virtual
+CPU(s):                          96
+On-line CPU(s) list:             0-95
+Thread(s) per core:              2
+Core(s) per socket:              24
+Socket(s):                       2
+NUMA node(s):                    8
+Vendor ID:                       AuthenticAMD
+CPU family:                      23
+Model:                           49
+Model name:                      AMD EPYC 7352 24-Core Processor
+Stepping:                        0
+CPU MHz:                         2861.238
+BogoMIPS:                        4591.05
+Virtualization:                  AMD-V
+L1d cache:                       1.5 MiB
+L1i cache:                       1.5 MiB
+L2 cache:                        24 MiB
+L3 cache:                        256 MiB
+NUMA node0 CPU(s):               0-5,48-53
+NUMA node1 CPU(s):               6-11,54-59
+NUMA node2 CPU(s):               12-17,60-65
+NUMA node3 CPU(s):               18-23,66-71
+NUMA node4 CPU(s):               24-29,72-77
+NUMA node5 CPU(s):               30-35,78-83
+NUMA node6 CPU(s):               36-41,84-89
+NUMA node7 CPU(s):               42-47,90-95
+Vulnerability Itlb multihit:     Not affected
+Vulnerability L1tf:              Not affected
+Vulnerability Mds:               Not affected
+Vulnerability Meltdown:          Not affected
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:        Mitigation; Full AMD retpoline, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling
+Vulnerability Srbds:             Not affected
+Vulnerability Tsx async abort:   Not affected
+Flags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.69038724899292,2.9628520011901855,2.6620678901672363,2.764277935028076,120M_cc_merged_v1_8k_iter-160000-ckpt-step-40000,cc_merged_v1_8k
+7,"{'lambada_openai': {'perplexity,none': 153.6413396684551, 'perplexity_stderr,none': 6.999832489313314, 'acc,none': 0.19386764991267222, 'acc_stderr,none': 0.005507670121645647, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.2804222266480781, 'acc_stderr,none': 0.004482874732237331, 'acc_norm,none': 0.2980481975702051, 'acc_norm_stderr,none': 0.004564659775075884, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_merged_v1_8k/iter-240000-ckpt-step-60000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-81-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   48 bits physical, 48 bits virtual
+CPU(s):                          96
+On-line CPU(s) list:             0-95
+Thread(s) per core:              2
+Core(s) per socket:              24
+Socket(s):                       2
+NUMA node(s):                    8
+Vendor ID:                       AuthenticAMD
+CPU family:                      23
+Model:                           49
+Model name:                      AMD EPYC 7352 24-Core Processor
+Stepping:                        0
+CPU MHz:                         3074.866
+BogoMIPS:                        4591.05
+Virtualization:                  AMD-V
+L1d cache:                       1.5 MiB
+L1i cache:                       1.5 MiB
+L2 cache:                        24 MiB
+L3 cache:                        256 MiB
+NUMA node0 CPU(s):               0-5,48-53
+NUMA node1 CPU(s):               6-11,54-59
+NUMA node2 CPU(s):               12-17,60-65
+NUMA node3 CPU(s):               18-23,66-71
+NUMA node4 CPU(s):               24-29,72-77
+NUMA node5 CPU(s):               30-35,78-83
+NUMA node6 CPU(s):               36-41,84-89
+NUMA node7 CPU(s):               42-47,90-95
+Vulnerability Itlb multihit:     Not affected
+Vulnerability L1tf:              Not affected
+Vulnerability Mds:               Not affected
+Vulnerability Meltdown:          Not affected
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:        Mitigation; Full AMD retpoline, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling
+Vulnerability Srbds:             Not affected
+Vulnerability Tsx async abort:   Not affected
+Flags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.6174750328063965,2.910392999649048,2.6162657737731934,2.7236781120300293,120M_cc_merged_v1_8k_iter-240000-ckpt-step-60000,cc_merged_v1_8k
+8,"{'lambada_openai': {'perplexity,none': 132.73069831116288, 'perplexity_stderr,none': 5.900045016442643, 'acc,none': 0.19716669901028527, 'acc_stderr,none': 0.005542957450011475, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.2831109340768771, 'acc_stderr,none': 0.0044958914405194405, 'acc_norm,none': 0.29954192391953793, 'acc_norm_stderr,none': 0.004571212360565255, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_merged_v1_8k/iter-320000-ckpt-step-80000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-166-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                       x86_64
+CPU op-mode(s):                     32-bit, 64-bit
+Byte Order:                         Little Endian
+Address sizes:                      43 bits physical, 48 bits virtual
+CPU(s):                             256
+On-line CPU(s) list:                0-255
+Thread(s) per core:                 2
+Core(s) per socket:                 64
+Socket(s):                          2
+NUMA node(s):                       8
+Vendor ID:                          AuthenticAMD
+CPU family:                         23
+Model:                              49
+Model name:                         AMD EPYC 7742 64-Core Processor
+Stepping:                           0
+Frequency boost:                    enabled
+CPU MHz:                            2951.052
+CPU max MHz:                        2250.0000
+CPU min MHz:                        1500.0000
+BogoMIPS:                           4491.36
+Virtualization:                     AMD-V
+L1d cache:                          4 MiB
+L1i cache:                          4 MiB
+L2 cache:                           64 MiB
+L3 cache:                           512 MiB
+NUMA node0 CPU(s):                  0-15,128-143
+NUMA node1 CPU(s):                  16-31,144-159
+NUMA node2 CPU(s):                  32-47,160-175
+NUMA node3 CPU(s):                  48-63,176-191
+NUMA node4 CPU(s):                  64-79,192-207
+NUMA node5 CPU(s):                  80-95,208-223
+NUMA node6 CPU(s):                  96-111,224-239
+NUMA node7 CPU(s):                  112-127,240-255
+Vulnerability Gather data sampling: Not affected
+Vulnerability Itlb multihit:        Not affected
+Vulnerability L1tf:                 Not affected
+Vulnerability Mds:                  Not affected
+Vulnerability Meltdown:             Not affected
+Vulnerability Mmio stale data:      Not affected
+Vulnerability Retbleed:             Vulnerable
+Vulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:           Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling, PBRSB-eIBRS Not affected
+Vulnerability Srbds:                Not affected
+Vulnerability Tsx async abort:      Not affected
+Flags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca sme sev sev_es
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.5795881748199463,2.8747613430023193,2.583240509033203,2.6911284923553467,120M_cc_merged_v1_8k_iter-320000-ckpt-step-80000,cc_merged_v1_8k
+9,"{'lambada_openai': {'perplexity,none': 123.26227546848737, 'perplexity_stderr,none': 5.43046178037072, 'acc,none': 0.2064816611682515, 'acc_stderr,none': 0.005639379218977887, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.28340967934674366, 'acc_stderr,none': 0.0044973255339596915, 'acc_norm,none': 0.3031268671579367, 'acc_norm_stderr,none': 0.0045867027160140334, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_merged_v1_8k/iter-400000-ckpt-step-100000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-166-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                       x86_64
+CPU op-mode(s):                     32-bit, 64-bit
+Byte Order:                         Little Endian
+Address sizes:                      43 bits physical, 48 bits virtual
+CPU(s):                             256
+On-line CPU(s) list:                0-255
+Thread(s) per core:                 2
+Core(s) per socket:                 64
+Socket(s):                          2
+NUMA node(s):                       8
+Vendor ID:                          AuthenticAMD
+CPU family:                         23
+Model:                              49
+Model name:                         AMD EPYC 7742 64-Core Processor
+Stepping:                           0
+Frequency boost:                    enabled
+CPU MHz:                            3326.422
+CPU max MHz:                        2250.0000
+CPU min MHz:                        1500.0000
+BogoMIPS:                           4491.36
+Virtualization:                     AMD-V
+L1d cache:                          4 MiB
+L1i cache:                          4 MiB
+L2 cache:                           64 MiB
+L3 cache:                           512 MiB
+NUMA node0 CPU(s):                  0-15,128-143
+NUMA node1 CPU(s):                  16-31,144-159
+NUMA node2 CPU(s):                  32-47,160-175
+NUMA node3 CPU(s):                  48-63,176-191
+NUMA node4 CPU(s):                  64-79,192-207
+NUMA node5 CPU(s):                  80-95,208-223
+NUMA node6 CPU(s):                  96-111,224-239
+NUMA node7 CPU(s):                  112-127,240-255
+Vulnerability Gather data sampling: Not affected
+Vulnerability Itlb multihit:        Not affected
+Vulnerability L1tf:                 Not affected
+Vulnerability Mds:                  Not affected
+Vulnerability Meltdown:             Not affected
+Vulnerability Mmio stale data:      Not affected
+Vulnerability Retbleed:             Vulnerable
+Vulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:           Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling, PBRSB-eIBRS Not affected
+Vulnerability Srbds:                Not affected
+Vulnerability Tsx async abort:      Not affected
+Flags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca sme sev sev_es
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.5494537353515625,2.861656665802002,2.56748366355896,2.6786139011383057,120M_cc_merged_v1_8k_iter-400000-ckpt-step-100000,cc_merged_v1_8k
+10,"{'lambada_openai': {'perplexity,none': 287.6154453408166, 'perplexity_stderr,none': 13.647970759443952, 'acc,none': 0.14748690083446536, 'acc_stderr,none': 0.0049401408127059095, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.27504481179047996, 'acc_stderr,none': 0.0044562426019505745, 'acc_norm,none': 0.28828918542123083, 'acc_norm_stderr,none': 0.004520406331084046, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_merged_v2_8k/iter-080000-ckpt-step-20000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-166-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                       x86_64
+CPU op-mode(s):                     32-bit, 64-bit
+Byte Order:                         Little Endian
+Address sizes:                      43 bits physical, 48 bits virtual
+CPU(s):                             256
+On-line CPU(s) list:                0-255
+Thread(s) per core:                 2
+Core(s) per socket:                 64
+Socket(s):                          2
+NUMA node(s):                       8
+Vendor ID:                          AuthenticAMD
+CPU family:                         23
+Model:                              49
+Model name:                         AMD EPYC 7742 64-Core Processor
+Stepping:                           0
+Frequency boost:                    enabled
+CPU MHz:                            3013.942
+CPU max MHz:                        2250.0000
+CPU min MHz:                        1500.0000
+BogoMIPS:                           4491.36
+Virtualization:                     AMD-V
+L1d cache:                          4 MiB
+L1i cache:                          4 MiB
+L2 cache:                           64 MiB
+L3 cache:                           512 MiB
+NUMA node0 CPU(s):                  0-15,128-143
+NUMA node1 CPU(s):                  16-31,144-159
+NUMA node2 CPU(s):                  32-47,160-175
+NUMA node3 CPU(s):                  48-63,176-191
+NUMA node4 CPU(s):                  64-79,192-207
+NUMA node5 CPU(s):                  80-95,208-223
+NUMA node6 CPU(s):                  96-111,224-239
+NUMA node7 CPU(s):                  112-127,240-255
+Vulnerability Gather data sampling: Not affected
+Vulnerability Itlb multihit:        Not affected
+Vulnerability L1tf:                 Not affected
+Vulnerability Mds:                  Not affected
+Vulnerability Meltdown:             Not affected
+Vulnerability Mmio stale data:      Not affected
+Vulnerability Retbleed:             Vulnerable
+Vulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:           Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling, PBRSB-eIBRS Not affected
+Vulnerability Srbds:                Not affected
+Vulnerability Tsx async abort:      Not affected
+Flags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca sme sev sev_es
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.853619337081909,3.0398364067077637,2.7495622634887695,2.864590883255005,120M_cc_merged_v2_8k_iter-080000-ckpt-step-20000,cc_merged_v2_8k
+11,"{'lambada_openai': {'perplexity,none': 169.7276083316874, 'perplexity_stderr,none': 7.641178091792972, 'acc,none': 0.18202988550359014, 'acc_stderr,none': 0.005375911851859767, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.27922724556861184, 'acc_stderr,none': 0.004477025762200586, 'acc_norm,none': 0.29794861581358295, 'acc_norm_stderr,none': 0.004564220870531511, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_merged_v2_8k/iter-160000-ckpt-step-40000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-166-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                       x86_64
+CPU op-mode(s):                     32-bit, 64-bit
+Byte Order:                         Little Endian
+Address sizes:                      43 bits physical, 48 bits virtual
+CPU(s):                             256
+On-line CPU(s) list:                0-255
+Thread(s) per core:                 2
+Core(s) per socket:                 64
+Socket(s):                          2
+NUMA node(s):                       8
+Vendor ID:                          AuthenticAMD
+CPU family:                         23
+Model:                              49
+Model name:                         AMD EPYC 7742 64-Core Processor
+Stepping:                           0
+Frequency boost:                    enabled
+CPU MHz:                            3182.125
+CPU max MHz:                        2250.0000
+CPU min MHz:                        1500.0000
+BogoMIPS:                           4491.36
+Virtualization:                     AMD-V
+L1d cache:                          4 MiB
+L1i cache:                          4 MiB
+L2 cache:                           64 MiB
+L3 cache:                           512 MiB
+NUMA node0 CPU(s):                  0-15,128-143
+NUMA node1 CPU(s):                  16-31,144-159
+NUMA node2 CPU(s):                  32-47,160-175
+NUMA node3 CPU(s):                  48-63,176-191
+NUMA node4 CPU(s):                  64-79,192-207
+NUMA node5 CPU(s):                  80-95,208-223
+NUMA node6 CPU(s):                  96-111,224-239
+NUMA node7 CPU(s):                  112-127,240-255
+Vulnerability Gather data sampling: Not affected
+Vulnerability Itlb multihit:        Not affected
+Vulnerability L1tf:                 Not affected
+Vulnerability Mds:                  Not affected
+Vulnerability Meltdown:             Not affected
+Vulnerability Mmio stale data:      Not affected
+Vulnerability Retbleed:             Vulnerable
+Vulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:           Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling, PBRSB-eIBRS Not affected
+Vulnerability Srbds:                Not affected
+Vulnerability Tsx async abort:      Not affected
+Flags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca sme sev sev_es
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.6935746669769287,2.9365899562835693,2.665727138519287,2.7685441970825195,120M_cc_merged_v2_8k_iter-160000-ckpt-step-40000,cc_merged_v2_8k
+12,"{'lambada_openai': {'perplexity,none': 136.30971225473894, 'perplexity_stderr,none': 6.006620930205523, 'acc,none': 0.1963904521637881, 'acc_stderr,none': 0.0055347091284361025, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.2826130252937662, 'acc_stderr,none': 0.00449349587200006, 'acc_norm,none': 0.30033857797251545, 'acc_norm_stderr,none': 0.0045746833738210466, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_merged_v2_8k/iter-240000-ckpt-step-60000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-166-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                       x86_64
+CPU op-mode(s):                     32-bit, 64-bit
+Byte Order:                         Little Endian
+Address sizes:                      43 bits physical, 48 bits virtual
+CPU(s):                             256
+On-line CPU(s) list:                0-255
+Thread(s) per core:                 2
+Core(s) per socket:                 64
+Socket(s):                          2
+NUMA node(s):                       8
+Vendor ID:                          AuthenticAMD
+CPU family:                         23
+Model:                              49
+Model name:                         AMD EPYC 7742 64-Core Processor
+Stepping:                           0
+Frequency boost:                    enabled
+CPU MHz:                            2928.403
+CPU max MHz:                        2250.0000
+CPU min MHz:                        1500.0000
+BogoMIPS:                           4491.36
+Virtualization:                     AMD-V
+L1d cache:                          4 MiB
+L1i cache:                          4 MiB
+L2 cache:                           64 MiB
+L3 cache:                           512 MiB
+NUMA node0 CPU(s):                  0-15,128-143
+NUMA node1 CPU(s):                  16-31,144-159
+NUMA node2 CPU(s):                  32-47,160-175
+NUMA node3 CPU(s):                  48-63,176-191
+NUMA node4 CPU(s):                  64-79,192-207
+NUMA node5 CPU(s):                  80-95,208-223
+NUMA node6 CPU(s):                  96-111,224-239
+NUMA node7 CPU(s):                  112-127,240-255
+Vulnerability Gather data sampling: Not affected
+Vulnerability Itlb multihit:        Not affected
+Vulnerability L1tf:                 Not affected
+Vulnerability Mds:                  Not affected
+Vulnerability Meltdown:             Not affected
+Vulnerability Mmio stale data:      Not affected
+Vulnerability Retbleed:             Vulnerable
+Vulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:           Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling, PBRSB-eIBRS Not affected
+Vulnerability Srbds:                Not affected
+Vulnerability Tsx async abort:      Not affected
+Flags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca sme sev sev_es
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.6092753410339355,2.898233652114868,2.6182689666748047,2.731354236602783,120M_cc_merged_v2_8k_iter-240000-ckpt-step-60000,cc_merged_v2_8k
+13,"{'lambada_openai': {'perplexity,none': 113.59873038739511, 'perplexity_stderr,none': 4.947744675800758, 'acc,none': 0.21831942557733358, 'acc_stderr,none': 0.005755365677563662, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.2860983867755427, 'acc_stderr,none': 0.00451012317135737, 'acc_norm,none': 0.30342561242780325, 'acc_norm_stderr,none': 0.004587978625582526, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_merged_v2_8k/iter-320000-ckpt-step-80000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-166-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                       x86_64
+CPU op-mode(s):                     32-bit, 64-bit
+Byte Order:                         Little Endian
+Address sizes:                      43 bits physical, 48 bits virtual
+CPU(s):                             256
+On-line CPU(s) list:                0-255
+Thread(s) per core:                 2
+Core(s) per socket:                 64
+Socket(s):                          2
+NUMA node(s):                       8
+Vendor ID:                          AuthenticAMD
+CPU family:                         23
+Model:                              49
+Model name:                         AMD EPYC 7742 64-Core Processor
+Stepping:                           0
+Frequency boost:                    enabled
+CPU MHz:                            3343.688
+CPU max MHz:                        2250.0000
+CPU min MHz:                        1500.0000
+BogoMIPS:                           4491.36
+Virtualization:                     AMD-V
+L1d cache:                          4 MiB
+L1i cache:                          4 MiB
+L2 cache:                           64 MiB
+L3 cache:                           512 MiB
+NUMA node0 CPU(s):                  0-15,128-143
+NUMA node1 CPU(s):                  16-31,144-159
+NUMA node2 CPU(s):                  32-47,160-175
+NUMA node3 CPU(s):                  48-63,176-191
+NUMA node4 CPU(s):                  64-79,192-207
+NUMA node5 CPU(s):                  80-95,208-223
+NUMA node6 CPU(s):                  96-111,224-239
+NUMA node7 CPU(s):                  112-127,240-255
+Vulnerability Gather data sampling: Not affected
+Vulnerability Itlb multihit:        Not affected
+Vulnerability L1tf:                 Not affected
+Vulnerability Mds:                  Not affected
+Vulnerability Meltdown:             Not affected
+Vulnerability Mmio stale data:      Not affected
+Vulnerability Retbleed:             Vulnerable
+Vulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:           Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling, PBRSB-eIBRS Not affected
+Vulnerability Srbds:                Not affected
+Vulnerability Tsx async abort:      Not affected
+Flags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca sme sev sev_es
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.5496108531951904,2.8603198528289795,2.584395408630371,2.695453643798828,120M_cc_merged_v2_8k_iter-320000-ckpt-step-80000,cc_merged_v2_8k
+14,"{'lambada_openai': {'perplexity,none': 107.27617168995793, 'perplexity_stderr,none': 4.671306408820923, 'acc,none': 0.22026004269357655, 'acc_stderr,none': 0.0057737081499583, 'alias': 'lambada_openai'}, 'hellaswag': {'acc,none': 0.28440549691296557, 'acc_stderr,none': 0.00450208828747009, 'acc_norm,none': 0.30551682931686913, 'acc_norm_stderr,none': 0.004596845936356614, 'alias': 'hellaswag'}}","{'hellaswag': [], 'lambada_openai': []}","{'hellaswag': {'task': 'hellaswag', 'group': ['multiple_choice'], 'dataset_path': 'hellaswag', 'training_split': 'train', 'validation_split': 'validation', 'process_docs': 'def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        ctx = doc[""ctx_a""] + "" "" + doc[""ctx_b""].capitalize()\n        out_doc = {\n            ""query"": preprocess(doc[""activity_label""] + "": "" + ctx),\n            ""choices"": [preprocess(ending) for ending in doc[""endings""]],\n            ""gold"": int(doc[""label""]),\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n', 'doc_to_text': '{{query}}', 'doc_to_target': '{{label}}', 'doc_to_choice': 'choices', 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'acc_norm', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'multiple_choice', 'repeats': 1, 'should_decontaminate': False, 'metadata': {'version': 1.0}}, 'lambada_openai': {'task': 'lambada_openai', 'group': ['lambada'], 'dataset_path': 'EleutherAI/lambada_openai', 'dataset_name': 'default', 'test_split': 'test', 'doc_to_text': ""{{text.split(' ')[:-1]|join(' ')}}"", 'doc_to_target': ""{{' '+text.split(' ')[-1]}}"", 'description': '', 'target_delimiter': ' ', 'fewshot_delimiter': '\n\n', 'num_fewshot': 10, 'metric_list': [{'metric': 'perplexity', 'aggregation': 'perplexity', 'higher_is_better': False}, {'metric': 'acc', 'aggregation': 'mean', 'higher_is_better': True}], 'output_type': 'loglikelihood', 'repeats': 1, 'should_decontaminate': True, 'doc_to_decontamination_query': '{{text}}', 'metadata': {'version': 1.0}}}","{'hellaswag': 1.0, 'lambada_openai': 1.0}","{'hellaswag': 10, 'lambada_openai': 10}","{'model': 'hf', 'model_args': 'pretrained=/home/aiops/zhuty/tinyllama/out/tiny_LLaMA_120M_8k_cc_merged_v2_8k/iter-400000-ckpt-step-100000_hf,dtype=float,tokenizer=meta-llama/Llama-2-7b-hf', 'batch_size': '48', 'batch_sizes': [], 'device': 'cuda:0', 'use_cache': None, 'limit': None, 'bootstrap_iters': 100000, 'gen_kwargs': None}",,"PyTorch version: 2.1.0+cu121
+Is debug build: False
+CUDA used to build PyTorch: 12.1
+ROCM used to build PyTorch: N/A
+
+OS: Ubuntu 20.04.6 LTS (x86_64)
+GCC version: (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Clang version: Could not collect
+CMake version: version 3.26.4
+Libc version: glibc-2.31
+
+Python version: 3.8.18 (default, Sep 11 2023, 13:40:15)  [GCC 11.2.0] (64-bit runtime)
+Python platform: Linux-5.4.0-166-generic-x86_64-with-glibc2.17
+Is CUDA available: True
+CUDA runtime version: 11.8.89
+CUDA_MODULE_LOADING set to: LAZY
+GPU models and configuration: GPU 0: NVIDIA A100-SXM4-40GB
+Nvidia driver version: 535.129.03
+cuDNN version: Probably one of the following:
+/usr/lib/x86_64-linux-gnu/libcudnn.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_adv_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_cnn_train.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_infer.so.8.9.0
+/usr/lib/x86_64-linux-gnu/libcudnn_ops_train.so.8.9.0
+HIP runtime version: N/A
+MIOpen runtime version: N/A
+Is XNNPACK available: True
+
+CPU:
+Architecture:                       x86_64
+CPU op-mode(s):                     32-bit, 64-bit
+Byte Order:                         Little Endian
+Address sizes:                      43 bits physical, 48 bits virtual
+CPU(s):                             256
+On-line CPU(s) list:                0-255
+Thread(s) per core:                 2
+Core(s) per socket:                 64
+Socket(s):                          2
+NUMA node(s):                       8
+Vendor ID:                          AuthenticAMD
+CPU family:                         23
+Model:                              49
+Model name:                         AMD EPYC 7742 64-Core Processor
+Stepping:                           0
+Frequency boost:                    enabled
+CPU MHz:                            3391.156
+CPU max MHz:                        2250.0000
+CPU min MHz:                        1500.0000
+BogoMIPS:                           4491.36
+Virtualization:                     AMD-V
+L1d cache:                          4 MiB
+L1i cache:                          4 MiB
+L2 cache:                           64 MiB
+L3 cache:                           512 MiB
+NUMA node0 CPU(s):                  0-15,128-143
+NUMA node1 CPU(s):                  16-31,144-159
+NUMA node2 CPU(s):                  32-47,160-175
+NUMA node3 CPU(s):                  48-63,176-191
+NUMA node4 CPU(s):                  64-79,192-207
+NUMA node5 CPU(s):                  80-95,208-223
+NUMA node6 CPU(s):                  96-111,224-239
+NUMA node7 CPU(s):                  112-127,240-255
+Vulnerability Gather data sampling: Not affected
+Vulnerability Itlb multihit:        Not affected
+Vulnerability L1tf:                 Not affected
+Vulnerability Mds:                  Not affected
+Vulnerability Meltdown:             Not affected
+Vulnerability Mmio stale data:      Not affected
+Vulnerability Retbleed:             Vulnerable
+Vulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:           Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling, PBRSB-eIBRS Not affected
+Vulnerability Srbds:                Not affected
+Vulnerability Tsx async abort:      Not affected
+Flags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif umip rdpid overflow_recov succor smca sme sev sev_es
+
+Versions of relevant libraries:
+[pip3] numpy==1.22.4
+[pip3] pytorch-lightning==2.1.3
+[pip3] torch==2.1.0
+[pip3] torchmetrics==1.3.0.post0
+[pip3] triton==2.1.0
+[conda] mkl                       2024.0.0                 pypi_0    pypi
+[conda] mkl-fft                   1.3.1                    pypi_0    pypi
+[conda] mkl-service               2.4.0                    pypi_0    pypi
+[conda] numpy                     1.22.4                   pypi_0    pypi
+[conda] pytorch-lightning         2.1.3                    pypi_0    pypi
+[conda] torch                     2.1.0                    pypi_0    pypi
+[conda] torchmetrics              1.3.0.post0              pypi_0    pypi
+[conda] triton                    2.1.0                    pypi_0    pypi",4.34.0,,2.5291664600372314,2.8463354110717773,2.5681047439575195,2.675708532333374,120M_cc_merged_v2_8k_iter-400000-ckpt-step-100000,cc_merged_v2_8k
