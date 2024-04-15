@@ -6,8 +6,8 @@ SAVE_PATH=/home/aiops/zhuty/ret_pretraining_data/id_added/$VERSION/traversal_pat
 # make dir if not exists
 mkdir -p $SAVE_PATH
 echo "save path: $SAVE_PATH"
+for k in  10 100 ; do
 for node_selection in "random" "min_degree" "max_degree" ; do
-  for k in  10 100 ; do
     for degree_measure in "all"  ; do
       echo "k=$k, node_selection=$node_selection, degree_measure=$degree_measure"
       python graph_traversal.py \
