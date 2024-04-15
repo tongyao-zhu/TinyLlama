@@ -15,7 +15,7 @@ elif [ $PROCESSING_LENGTH == "8k" ]; then
 else
    chunk_size=32784 # (2048 + 1) * 16
 fi
-
+echo "Destination path: $DEST_PATH"
 
 for split in 'train' 'valid' ; do
 python scripts/prepare_file.py --source_path $SOURCE_PATH \
