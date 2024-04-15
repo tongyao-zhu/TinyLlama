@@ -7,9 +7,14 @@
 # OLD_PATH_FILE=/home/aiops/zhuty/ret_pretraining_data/id_added/rpwiki_en/traversal_paths/result_path_adj_lst_top_100_out_degree_min_degree_selection_20240110_121843.json
 # ADJ_LST=/home/aiops/zhuty/ret_pretraining_data/id_added/rpwiki_en/adj_lists/bm25/adj_lst_top_100.json
 
-OLD_PATH_FILE=/home/aiops/zhuty/ret_pretraining_data/id_added/cc/traversal_paths/dense_keep/result_path_adj_lists_top10_max21_all_degree_random_selection_undirected_20240127_121754.json
-ADJ_LST=/home/aiops/zhuty/ret_pretraining_data/id_added/cc/dense_search_results/keep/adj_lists
+#OLD_PATH_FILE=/home/aiops/zhuty/ret_pretraining_data/id_added/cc/traversal_paths/dense_keep/result_path_adj_lists_top10_max21_all_degree_random_selection_undirected_20240127_121754.json
+#ADJ_LST=/home/aiops/zhuty/ret_pretraining_data/id_added/cc/dense_search_results/keep/adj_lists
 
+#OLD_PATH_FILE=/home/aiops/zhuty/ret_pretraining_data/id_added/cc/traversal_paths/bm25_first/result_path_adj_lists_top10_max21_all_degree_random_selection_undirected_20240221_072303.json
+#ADJ_LST=/home/aiops/zhuty/ret_pretraining_data/id_added/cc/bm25_search_results/first/adj_lists
+
+OLD_PATH_FILE=/home/aiops/zhuty/ret_pretraining_data/id_added/cc/traversal_paths/el_last_120m/result_path_adj_lists_top10_max21_all_degree_random_selection_undirected_20240227_111736.json
+ADJ_LST=/home/aiops/zhuty/ret_pretraining_data/id_added/cc/el_search_results/last_120m/adj_lists
 python merge_path.py \
 --path_file $OLD_PATH_FILE \
 --adj_lst $ADJ_LST --top_k 100
