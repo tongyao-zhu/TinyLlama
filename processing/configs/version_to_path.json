@@ -11,5 +11,7 @@
     "c4_news_top100_dense_v1": "/home/aiops/zhuty/ret_pretraining_data/id_added/c4_news/traversal_paths/dense_first/result_path_adj_lists_top100_all_degree_min_degree_selection_undirected_20240118_002742.json",
     "c4_news_top100_merged_v2": "/home/aiops/zhuty/ret_pretraining_data/id_added/c4_news/traversal_paths/dense_first/result_path_adj_lists_top100_max21_all_degree_random_selection_undirected_20240119_033720_merged_csize21_k100.json",
     "c4_news_top100_merged_v3": "/home/aiops/zhuty/ret_pretraining_data/id_added/c4_news/traversal_paths/dense_first/result_path_adj_lists_top100_max21_all_degree_random_selection_undirected_20240119_033720_merged_csize21_k100.json",
-  "cc_merged_v1": "/home/aiops/zhuty/ret_pretraining_data/id_added/cc/traversal_paths/dense_keep/result_path_adj_lists_top10_max21_all_degree_random_selection_undirected_20240127_121754_merged_csize21_k100.json"
+  "cc_merged_v1": "/home/aiops/zhuty/ret_pretraining_data/id_added/cc/traversal_paths/dense_keep/result_path_adj_lists_top10_max21_all_degree_random_selection_undirected_20240127_121754_merged_csize21_k100.json",
+  "cc_merged_v2": "/home/aiops/zhuty/ret_pretraining_data/id_added/cc/traversal_paths/bm25_first/result_path_adj_lists_top10_max21_all_degree_random_selection_undirected_20240221_072303_merged_csize21_k100.json",
+  "cc_merged_v3": "/home/aiops/zhuty/ret_pretraining_data/id_added/cc/traversal_paths/el_last_120m/result_path_adj_lists_top10_max21_all_degree_random_selection_undirected_20240227_111736_merged_csize21_k100.json"
 }
