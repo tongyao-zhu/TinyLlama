@@ -1,6 +1,7 @@
 import glob
 import math
 import sys
+import json
 import time
 from pathlib import Path
 from typing import Optional, Tuple, Union
@@ -38,7 +39,7 @@ num_of_devices = int(os.environ['NUMBER_OF_GPU'])
 global_batch_size = 512
 learning_rate = 4e-4
 if "120M" in model_name:
-    micro_batch_size = 64
+    micro_batch_size = 32
 elif '1b' in model_name:
     micro_batch_size = 16
 elif '360M' in model_name:
@@ -64,6 +65,7 @@ elif "c4_news" in dataset_name or "wiki" in dataset_name:
     max_step = 25000
 elif "cc" in dataset_name:
     max_step = 50000 # 2 epochs on cc dataset
+    max_step = 100000 # 4 epochs on cc dataset
 else:
     raise ValueError("Invalid dataset name")
 warmup_steps = 2000
@@ -204,6 +206,10 @@ def train(fabric, state, train_dataloader, val_dataloader, monitor, resume, eval
         loss = validate(fabric, model, val_dataloader)  # sanity check
         print(f"Validation loss: {loss:.4f}, PPL: {math.exp(loss):.4f}")
         if eval_only:
+            if os.getenv("LOG_FILE"):
+                with open(os.getenv("LOG_FILE"), "w") as f:
+                    json.dump({"val_loss": loss.item(), "val_ppl": math.exp(loss.item())}, f)
+                print("Saved val_loss and val_ppl to {}".format(os.getenv("LOG_FILE")))
             return
 
     with torch.device("meta"):
