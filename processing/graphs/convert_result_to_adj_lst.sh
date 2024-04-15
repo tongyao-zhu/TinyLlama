@@ -1,8 +1,8 @@
 
 
 DS_NAME=cc
-search_type=dense
-query_type=keep
+search_type=bm25
+query_type=first
 
 for i in {0..99} ; do
   python create_adj_lst_jsonl.py \
