@@ -212,6 +212,7 @@ def agnews_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, m
     train_data = load_jsonl(TASK_DATA_PATH[task]["train"])
     test_data = load_jsonl(TASK_DATA_PATH[task]["test"])
     label2str = {0: "world", 1: "sports", 2: "business", 3: "science"}
+    # label2str = {0: "M", 1: "N", 2: "Q", 3: "P"}
     get_label_call = lambda x: x["label"]
     demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
     prompt_list = []
@@ -238,6 +239,7 @@ def amazon_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, m
         sample_test_rng = np.random.RandomState(666)
         test_data = sample_test_rng.choice(test_data, 5000, replace=False)
     label2str = {0: "negative", 1: "positive"}
+    # label2str = {0: "foo", 1: "bar"}
     get_label_call = lambda x: x["label"]
     demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
     prompt_list = []
@@ -259,6 +261,7 @@ def get_dbpedia_prompt(input_example, demonstrations, label2str):
 def dbpedia_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
     names = ["Company", "EducationalInstitution", "Artist", "Athlete", "OfficeHolder", "MeanOfTransportation",
              "Building", "NaturalPlace", "Village", "Animal", "Plant", "Album", "Film", "WrittenWork", ]
+    # names = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"]
     generation_kwargs["max_new_tokens"] = 8
     train_data = load_jsonl(TASK_DATA_PATH["dbpedia"]["train"])
     test_data = load_jsonl(TASK_DATA_PATH["dbpedia"]["test"])
@@ -292,6 +295,7 @@ def yelp_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max
         sample_test_rng = np.random.RandomState(666)
         test_data = sample_test_rng.choice(test_data, 5000, replace=False)
     label2str = {0: "negative", 1: "positive"}
+    # label2str = {0: "foo", 1: "bar"}
     get_label_call = lambda x: x["label"]
     demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
     prompt_list = []
@@ -315,6 +319,7 @@ def sst2_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max
     train_data = load_jsonl(TASK_DATA_PATH[task]["train"])
     test_data = load_jsonl(TASK_DATA_PATH[task]["test"])
     label2str = {0: "positive", 1: "negative"}
+    # label2str = {0: "foo", 1: "bar"}
     get_label_call = lambda x: x["label"]
     demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
     prompt_list = []
@@ -338,6 +343,7 @@ def tweet_hate_evaluation(model, tokenizer, generation_kwargs, task, n_shot, see
     train_data = load_jsonl(TASK_DATA_PATH["tweet_hate"]["train"])
     test_data = load_jsonl(TASK_DATA_PATH["tweet_hate"]["test"])
     label2str = {0: "Non-hate", 1: "Hate"}
+    # label2str = {0: "foo", 1: "bar"}
     get_label_call = lambda x: x["label"]
     demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
     prompt_list = []
@@ -353,6 +359,7 @@ def tweet_offensive_evaluation(model, tokenizer, generation_kwargs, task, n_shot
     train_data = load_jsonl(TASK_DATA_PATH["tweet_offensive"]["train"])
     test_data = load_jsonl(TASK_DATA_PATH["tweet_offensive"]["test"])
     label2str = {0: "Non-hate", 1: "Hate"}
+    # label2str = {0: "foo", 1: "bar"}
     get_label_call = lambda x: x["label"]
     demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
     prompt_list = []
