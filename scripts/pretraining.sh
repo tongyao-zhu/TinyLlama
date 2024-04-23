@@ -17,7 +17,7 @@ else
 fi
 
 # List of valid model names
-valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_8k" "tiny_LLaMA_360M" "tiny_LLaMA_360M_4k" "tiny_LLaMA_360M_8k") # Add more model names as needed
+valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_8k" "tiny_LLaMA_360M" "tiny_LLaMA_360M_4k" "tiny_LLaMA_360M_8k" "tiny_LLaMA_1b_8k_intramask") # Add more model names as needed
 
 # Function to check if a model name is valid
 is_valid_model() {
