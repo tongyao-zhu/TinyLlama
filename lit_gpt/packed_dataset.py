@@ -12,6 +12,20 @@ from torch.utils.data import IterableDataset, get_worker_info
 
 dtypes = {1: np.uint8, 2: np.int8, 3: np.int16, 4: np.int32, 5: np.int64, 6: np.float32, 7: np.float64, 8: np.uint16}
 
+def get_fragment_lens(chunk):
+    # adapted from https://github.com/yuzhaouoe/pretraining-data-packing/blob/8ee89732e73e9c5dec5af858289512206a050a0d/packing_dataset.py#L165
+    # need to calculate the fragment lengths for each chunk
+    chunk_size = len(chunk)
+    cur_fragment_lens = []
+    prev = 0
+    for token_idx, token in enumerate(chunk):
+        if token == 2:  # eos token
+            cur_fragment_lens.append(token_idx - prev + 1)
+            prev = token_idx + 1
+    if prev != chunk_size:
+        cur_fragment_lens.append(chunk_size - prev)
+
+    return cur_fragment_lens, len(cur_fragment_lens)
 
 def code(dtype):
     for k in dtypes:
@@ -26,7 +40,7 @@ HDR_SIZE = 24  # bytes
 
 class PackedDataset(IterableDataset):
     def __init__(
-        self, filenames, n_chunks, block_size, seed=12345, shuffle=True, wrap=False, num_processes=1, process_rank=0
+        self, filenames, n_chunks, block_size, seed=12345, shuffle=True, wrap=False, num_processes=1, process_rank=0, mask_attn=False
     ):
         self._filenames = filenames
         self._n_chunks = n_chunks
@@ -36,6 +50,7 @@ class PackedDataset(IterableDataset):
         self._wrap = wrap
         self._num_processes = num_processes
         self._process_rank = process_rank
+        self._mask_attn = mask_attn
 
     def __iter__(self):
         worker_info = get_worker_info()
@@ -54,6 +69,7 @@ class PackedDataset(IterableDataset):
             seed=self._seed,
             shuffle=self._shuffle,
             wrap=self._wrap,
+            mask_attn=self._mask_attn,
         )
 
 
@@ -119,7 +135,7 @@ class PackedDatasetBuilder(object):
 
 
 class PackedDatasetIterator:
-    def __init__(self, filenames, n_chunks, block_size, seed, shuffle, wrap):
+    def __init__(self, filenames, n_chunks, block_size, seed, shuffle, wrap, mask_attn):
         self._seed = seed
         self._shuffle = shuffle
         self._rng = np.random.default_rng(seed) if shuffle else None
@@ -144,6 +160,9 @@ class PackedDatasetIterator:
 
         self._block_idxs = []
         self._curr_idx = 0
+        print("In iterator, whether we are masking the attention?")
+        print("mask_attn", mask_attn)
+        self._mask_attn = mask_attn
 
         self._load_n_chunks()
 
@@ -208,9 +227,15 @@ class PackedDatasetIterator:
         elem_id = (block_idx % self._n_blocks) * self._block_size
         offset = np.dtype(self._dtype).itemsize * elem_id
         arr = np.frombuffer(buffer, dtype=self._dtype, count=self._block_size, offset=offset)
+        arr = torch.from_numpy(arr.astype(np.int64)) # block size here is 8193
+        # print("Block size", self._block_size, "arr shape", arr.shape, "arr dtype", arr.dtype, "arr", arr)
         self._curr_idx += 1
-        return torch.from_numpy(arr.astype(np.int64))
-
+        if self._mask_attn:
+            cur_fragment_lens, cur_fragment_nums = get_fragment_lens(arr[:self._block_size-1]) # only calculate the input
+            # print("Yieleding with mask attn, shapes are : ", arr.shape, len(cur_fragment_lens), cur_fragment_nums)
+            return {"idx": arr, "fragment_lens": cur_fragment_lens, "fragment_nums": cur_fragment_nums}
+        else:
+            return {"idx": arr}
 
 class CombinedDataset(IterableDataset):
     def __init__(self, datasets, seed, weights=None):

@@ -150,6 +150,8 @@ def main(fabric, train_data_dir, val_data_dir, resume, eval_only):
         out_dir.mkdir(parents=True, exist_ok=True)
 
     config = Config.from_name(model_name)
+    print("model_name", model_name)
+    print("config.intradoc_mask", config.intradoc_mask)
 
     train_dataloader, val_dataloader = create_dataloaders(
         batch_size=micro_batch_size,
@@ -158,6 +160,7 @@ def main(fabric, train_data_dir, val_data_dir, resume, eval_only):
         train_data_dir=train_data_dir,
         val_data_dir=val_data_dir,
         seed=3407,
+        mask_attn=config.intradoc_mask
     )
     if val_dataloader is None:
         train_dataloader = fabric.setup_dataloaders(train_dataloader)
@@ -258,12 +261,21 @@ def train(fabric, state, train_dataloader, val_dataloader, monitor, resume, eval
             param_group["lr"] = lr
 
         iter_t0 = time.perf_counter()
+        train_input_ids  = train_data["idx"]
 
-        input_ids = train_data[:, 0 : model.config.block_size].contiguous()
-        targets = train_data[:, 1 : model.config.block_size + 1].contiguous()
+        input_ids = train_input_ids[:, 0 : model.config.block_size].contiguous()
+        targets = train_input_ids[:, 1 : model.config.block_size + 1].contiguous()
         is_accumulating = (state["iter_num"] + 1) % gradient_accumulation_steps != 0
         with fabric.no_backward_sync(model, enabled=is_accumulating):
-            logits = model(input_ids)
+            if "fragment_lens" in train_data:
+                # print("using fragment_lens and fragment_nums for training.")
+                fragment_lens = train_data["fragment_lens"]
+                fragment_nums = train_data["fragment_nums"]
+                logits = model(input_ids, fragment_lens = fragment_lens, fragment_nums = fragment_nums)
+            else:
+                logits = model(input_ids)
+            #print('logits', logits.shape, 'targets', targets.shape)
+            #print('logits', logits[0])
             loss = loss_func(logits, targets)
             # loss = chunked_cross_entropy(logits, targets, chunk_size=0)
             fabric.backward(loss / gradient_accumulation_steps)
@@ -326,6 +338,7 @@ def validate(fabric: L.Fabric, model: torch.nn.Module, val_dataloader: DataLoade
     for k, val_data in enumerate(val_dataloader):
         if k >= eval_iters:
             break
+        val_data  = val_data["idx"]
         input_ids = val_data[:, 0 : model.config.block_size].contiguous()
         targets = val_data[:, 1 : model.config.block_size + 1].contiguous()
         logits = model(input_ids)
@@ -342,7 +355,7 @@ def validate(fabric: L.Fabric, model: torch.nn.Module, val_dataloader: DataLoade
 
 
 def create_dataloader(
-    batch_size: int, block_size: int, data_dir: Path, fabric, shuffle: bool = True, seed: int = 12345, split="train"
+    batch_size: int, block_size: int, data_dir: Path, fabric, shuffle: bool = True, seed: int = 12345, split="train", mask_attn=False
 ) -> DataLoader:
     datasets = []
     data_config = train_data_config if split == "train" else val_data_config
@@ -351,7 +364,6 @@ def create_dataloader(
         print("Found {} files for {}".format(len(filenames), prefix))
         random.seed(seed)
         random.shuffle(filenames)
-
         dataset = PackedDataset(
             filenames,
             # n_chunks control the buffer size. 
@@ -363,6 +375,7 @@ def create_dataloader(
             seed=seed+fabric.global_rank,
             num_processes=fabric.world_size,
             process_rank=fabric.global_rank,
+            mask_attn=True if split == "train" and mask_attn else False
         )
         datasets.append(dataset)
 
@@ -377,7 +390,28 @@ def create_dataloader(
 
     combined_dataset = CombinedDataset(datasets=datasets, seed=seed, weights=weights)
 
-    return DataLoader(combined_dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
+    def collate_fn_with_intradoc_mask(examples: dict, max_num_fragments_in_chunk=65):
+        #print(examples[0].keys())
+        a = ([example["idx"] for example in examples])
+        #print(len(a), a[0].shape, type(a[0]))
+        input_ids = torch.LongTensor(torch.stack([example["idx"] for example in examples]))
+        #print("input_ids", input_ids.shape, input_ids.dtype)
+        # if "labels" not in examples[0]:
+        #     labels = input_ids
+        # else:
+        #     labels = torch.LongTensor([example["labels"] for example in examples])
+        batch_inputs = {"idx": input_ids}
+        if "fragment_lens" in examples[0]:
+            fragment_lens = [
+                torch.tensor(item["fragment_lens"] + (max_num_fragments_in_chunk - len(item["fragment_lens"])) * [-1])
+                for item in examples
+            ]
+            batch_inputs["fragment_lens"] = torch.stack(fragment_lens)
+            fragment_nums = torch.tensor([item["fragment_nums"] for item in examples], dtype=torch.int32)
+            batch_inputs["fragment_nums"] = fragment_nums
+        return batch_inputs
+
+    return DataLoader(combined_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, collate_fn=collate_fn_with_intradoc_mask)
 
 
 def create_dataloaders(
@@ -387,6 +421,7 @@ def create_dataloaders(
     train_data_dir: Path = Path("data/redpajama_sample"),
     val_data_dir: Optional[Path] = None,
     seed: int = 12345,
+    mask_attn=False
 ) -> Tuple[DataLoader, DataLoader]:
     # Increase by one because we need the next word as well
     effective_block_size = block_size + 1
@@ -397,7 +432,8 @@ def create_dataloaders(
         data_dir=train_data_dir,
         shuffle=True,
         seed=seed,
-        split="train"
+        split="train",
+        mask_attn=mask_attn
     )
     val_dataloader = (
         create_dataloader(

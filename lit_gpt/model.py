@@ -62,8 +62,19 @@ class GPT(nn.Module):
             self.mask_cache = None
 
     def forward(
-        self, idx: torch.Tensor, max_seq_length: Optional[int] = None, input_pos: Optional[torch.Tensor] = None
+        self, idx: torch.Tensor, fragment_lens = None, fragment_nums = None, max_seq_length: Optional[int] = None, input_pos: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
+        if self.config.intradoc_mask and self.training:
+            real_fragment_lens = [torch.tensor([0], dtype=torch.int32, device=fragment_lens.device)]
+            for padded_fragment_lens, cur_fragment_num in zip(fragment_lens, fragment_nums):
+                real_fragment_lens.append(padded_fragment_lens[:cur_fragment_num])
+            real_fragment_lens = torch.cat(real_fragment_lens)
+            max_seqlen = real_fragment_lens.max().item()
+            cu_seqlens = torch.cumsum(real_fragment_lens, 0, dtype=torch.int32)
+            # print(f"max_seqlen shape: {max_seqlen}, cu_seqlens shape: {cu_seqlens.shape}")
+        else:
+            max_seqlen, cu_seqlens = None, None
+
         B, T = idx.size()
         use_kv_cache = input_pos is not None
 
@@ -102,12 +113,13 @@ class GPT(nn.Module):
             
         if not use_kv_cache:
             for block in self.transformer.h:
-                x, *_ = block(x, (cos, sin), max_seq_length)
+                assert (self.training and (cu_seqlens is not None or not self.config.intradoc_mask)) or not self.training, "cu_seqlens must be provided for intradoc mask[0]"
+                x, *_ = block(x, (cos, sin), max_seq_length, cuseq_lens=cu_seqlens, max_seqlen=max_seqlen)
         else:
             self.kv_caches = self.kv_caches or self.build_kv_caches(x, max_seq_length, cos.size(-1) * 2)
             for i, block in enumerate(self.transformer.h):
-                x, self.kv_caches[i] = block(x, (cos, sin), max_seq_length, mask, input_pos, self.kv_caches[i])
-
+                assert (self.training and (cu_seqlens is not None or not self.config.intradoc_mask)) or not self.training, "cu_seqlens must be provided for intradoc mask[0]"
+                x, self.kv_caches[i] = block(x, (cos, sin), max_seq_length, mask, input_pos, self.kv_caches[i], cuseq_lens=cu_seqlens, max_seqlen=max_seqlen)
         x = self.transformer.ln_f(x)
 
         return self.lm_head(x)  # (b, t, vocab_size)
@@ -164,10 +176,12 @@ class Block(nn.Module):
         mask: Optional[torch.Tensor] = None,
         input_pos: Optional[torch.Tensor] = None,
         kv_cache: Optional[KVCache] = None,
+        cuseq_lens: Optional[torch.Tensor] = None,
+        max_seqlen: Optional[int] = None,
     ) -> Tuple[torch.Tensor, Optional[KVCache]]:
 
         n_1 = self.norm_1(x)
-        h, new_kv_cache = self.attn(n_1, rope, max_seq_length, mask, input_pos, kv_cache)
+        h, new_kv_cache = self.attn(n_1, rope, max_seq_length, mask, input_pos, kv_cache, cuseq_lens=cuseq_lens, max_seqlen=max_seqlen)
         if self.config.parallel_residual:
             n_2 = n_1 if self.config.shared_attention_norm else self.norm_2(x)
             x = x + h + self.mlp(n_2)
@@ -193,6 +207,7 @@ class CausalSelfAttention(nn.Module):
         self.proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
 
         self.config = config
+        self._mask_attn = config.intradoc_mask
 
     def forward(
         self,
@@ -202,6 +217,8 @@ class CausalSelfAttention(nn.Module):
         mask: Optional[torch.Tensor] = None,
         input_pos: Optional[torch.Tensor] = None,
         kv_cache: Optional[KVCache] = None,
+        cuseq_lens: Optional[torch.Tensor] = None,
+        max_seqlen: Optional[int] = None,
     ) -> Tuple[torch.Tensor, Optional[KVCache]]:
         B, T, C = x.size()  # batch size, sequence length, embedding dimensionality (n_embd)
 
@@ -256,17 +273,16 @@ class CausalSelfAttention(nn.Module):
             v = cache_v.index_copy_(1, input_pos, v)
             kv_cache = k, v
 
-        y = self.scaled_dot_product_attention(q, k, v, mask=mask)
-
+        y = self.scaled_dot_product_attention(q, k, v, mask=mask, cuseq_lens=cuseq_lens, max_seqlen=max_seqlen)
         y = y.reshape(B, T, C)  # re-assemble all head outputs side by side
 
         # output projection
         y = self.proj(y)
-
         return y, kv_cache
 
     def scaled_dot_product_attention(
-        self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, mask: Optional[torch.Tensor] = None
+        self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, mask: Optional[torch.Tensor] = None, cuseq_lens: Optional[torch.Tensor] = None,
+            max_seqlen: Optional[int] = None
     ):
         scale = 1.0 / math.sqrt(self.config.head_size)
         
@@ -276,9 +292,28 @@ class CausalSelfAttention(nn.Module):
             and q.device.type == "cuda"
             and q.dtype in (torch.float16, torch.bfloat16)
         ):
-            from flash_attn import flash_attn_func
+            from flash_attn import flash_attn_func, flash_attn_varlen_func
+            if self._mask_attn and self.training:
+                assert cuseq_lens is not None, "cu_seqlens must be provided for intradoc mask"
+                assert max_seqlen is not None, "max_seqlen must be provided for intradoc mask"
+                #print(f"I am here using flash attention with document mask! and I am in training mode: {self.training}")
+                # print(cuseq_lens.shape, max_seqlen)
+                # merge the first two dimensions of q k v
+                bsize, seqlen, nhead, head_dim = q.shape
+                q = q.reshape(-1, q.shape[-2], q.shape[-1])
+                k = k.reshape(-1, k.shape[-2], k.shape[-1])
+                v = v.reshape(-1, v.shape[-2], v.shape[-1])
+                #print("New shapes", q.shape, k.shape, v.shape)
+                #print("cuseq_lens", cuseq_lens, cuseq_lens.shape)
+                #print("Max seqlen", max_seqlen)
+                result =  flash_attn_varlen_func(q, k, v, cu_seqlens_q=cuseq_lens, cu_seqlens_k=cuseq_lens,
+                                              max_seqlen_q=max_seqlen,
+                                              max_seqlen_k=max_seqlen, dropout_p=0.0, softmax_scale=scale, causal=True)
+                result = result.reshape(bsize, seqlen, nhead, head_dim)
+                return result
+            else:
+                return flash_attn_func(q, k, v, dropout_p=0.0, softmax_scale=scale, causal=True)
 
-            return flash_attn_func(q, k, v, dropout_p=0.0, softmax_scale=scale, causal=True)
         q = q.transpose(1, 2)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
