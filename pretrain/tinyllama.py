@@ -160,7 +160,8 @@ def main(fabric, train_data_dir, val_data_dir, resume, eval_only):
         train_data_dir=train_data_dir,
         val_data_dir=val_data_dir,
         seed=3407,
-        mask_attn=config.intradoc_mask
+        mask_attn=config.intradoc_mask,
+        merge_method=config.merge_method,
     )
     if val_dataloader is None:
         train_dataloader = fabric.setup_dataloaders(train_dataloader)
@@ -190,11 +191,16 @@ def main(fabric, train_data_dir, val_data_dir, resume, eval_only):
 
     if resume is True:
         resume = sorted(out_dir.glob("*.pth"))[-1]
+    elif not resume and len(list(out_dir.glob("*.pth"))) > 0:
+        fabric.print(f"Found existing checkpoints in {out_dir}. Resuming from the latest one.")
+        resume = sorted(out_dir.glob("*.pth"))[-1]
     if resume :
         fabric.print(f"Resuming training from {resume}")
         fabric.load(resume, state)
 
     train_time = time.perf_counter()
+    print("Running evaluation only mode?", eval_only)
+
     train(fabric, state, train_dataloader, val_dataloader, monitor, resume, eval_only)
     fabric.print(f"Training time: {(time.perf_counter()-train_time):.2f}s")
     if fabric.device.type == "cuda":
@@ -355,7 +361,7 @@ def validate(fabric: L.Fabric, model: torch.nn.Module, val_dataloader: DataLoade
 
 
 def create_dataloader(
-    batch_size: int, block_size: int, data_dir: Path, fabric, shuffle: bool = True, seed: int = 12345, split="train", mask_attn=False
+    batch_size: int, block_size: int, data_dir: Path, fabric, shuffle: bool = True, seed: int = 12345, split="train", mask_attn="", merge_method="no",
 ) -> DataLoader:
     datasets = []
     data_config = train_data_config if split == "train" else val_data_config
@@ -375,7 +381,8 @@ def create_dataloader(
             seed=seed+fabric.global_rank,
             num_processes=fabric.world_size,
             process_rank=fabric.global_rank,
-            mask_attn=True if split == "train" and mask_attn else False
+            mask_attn=mask_attn if split == "train" and mask_attn else "",
+            merge_method=merge_method,
         )
         datasets.append(dataset)
 
@@ -421,7 +428,8 @@ def create_dataloaders(
     train_data_dir: Path = Path("data/redpajama_sample"),
     val_data_dir: Optional[Path] = None,
     seed: int = 12345,
-    mask_attn=False
+    mask_attn="",
+    merge_method="none",
 ) -> Tuple[DataLoader, DataLoader]:
     # Increase by one because we need the next word as well
     effective_block_size = block_size + 1
@@ -433,7 +441,8 @@ def create_dataloaders(
         shuffle=True,
         seed=seed,
         split="train",
-        mask_attn=mask_attn
+        mask_attn=mask_attn,
+        merge_method=merge_method,
     )
     val_dataloader = (
         create_dataloader(

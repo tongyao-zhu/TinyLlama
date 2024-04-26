@@ -12,20 +12,105 @@ from torch.utils.data import IterableDataset, get_worker_info
 
 dtypes = {1: np.uint8, 2: np.int8, 3: np.int16, 4: np.int32, 5: np.int64, 6: np.float32, 7: np.float64, 8: np.uint16}
 
-def get_fragment_lens(chunk):
+def get_fragment_lens(chunk, skip_indices):
     # adapted from https://github.com/yuzhaouoe/pretraining-data-packing/blob/8ee89732e73e9c5dec5af858289512206a050a0d/packing_dataset.py#L165
     # need to calculate the fragment lengths for each chunk
     chunk_size = len(chunk)
     cur_fragment_lens = []
     prev = 0
     for token_idx, token in enumerate(chunk):
-        if token == 2:  # eos token
+        if token == 2 and token_idx not in skip_indices:
             cur_fragment_lens.append(token_idx - prev + 1)
             prev = token_idx + 1
     if prev != chunk_size:
         cur_fragment_lens.append(chunk_size - prev)
-
+    # print("Fragment lens:", cur_fragment_lens)
+    # print("Sum of fragment lens:", sum(cur_fragment_lens))
     return cur_fragment_lens, len(cur_fragment_lens)
+
+def split_into_docs(chunk, eos_id = 2):
+    """
+    Split the chunk into documents based on the EOS token
+    Args:
+        chunk:
+        eos_id:
+
+    Returns: list of documents
+    """
+    eos_indices = np.where(chunk == eos_id)[0]
+    docs = []
+    start_idx = 0
+    for eos_idx in eos_indices:
+        docs.append(chunk[start_idx:eos_idx])
+        start_idx = eos_idx + 1
+    if start_idx < len(chunk):
+        docs.append(chunk[start_idx:])
+    return docs
+
+# def calculate_bigram_overlap(prev, next):
+#     prev_bigrams = set(zip(prev[:-1], prev[1:]))
+#     next_bigrams = set(zip(next[:-1], next[1:]))
+#     if len(prev_bigrams) == 0 or len(next_bigrams) == 0:
+#         return 0
+#     return len(prev_bigrams.intersection(next_bigrams)) / min(len(prev_bigrams), len(next_bigrams))
+
+def calculate_bigram_set_overlap(prev_bigrams, next_bigrams):
+    """
+    Calculate the overlap between two sets of bigrams
+    Args:
+        prev_bigrams:
+        next_bigrams:
+
+    Returns:
+
+    """
+    if len(prev_bigrams) == 0 or len(next_bigrams) == 0:
+        return 0
+    return len(prev_bigrams.intersection(next_bigrams)) / min(len(prev_bigrams), len(next_bigrams))
+def get_eos_indices_between_relevant_docs(chunk, sim_func, eos_id, lower_bound, upper_bound):
+    """
+    Merge neighboring documents if they have similarity
+    Args:
+        chunk: an array of tokens
+        eos_id: EOS token id used to mark the boundary of documents
+
+    Returns: indices of the EOS tokens that need to be replaced
+    """
+    eos_indices = np.where(chunk == eos_id)[0]
+    docs = [x.tolist() for x in split_into_docs(chunk, eos_id)]
+    doc_bigrams = [set(zip(doc[:-1], doc[1:])) for doc in docs]
+    # print([len(doc) for doc in doc_bigrams])
+    # print("Merging")
+    # if two docs are have similarity, replace the eos with the replace_token_id
+    result_indices = []
+    sim_scores = []
+    for i in range(len(docs) - 1):
+        sim = sim_func(doc_bigrams[i], doc_bigrams[i+1])
+        sim_scores.append(sim)
+        if lower_bound <= sim <= upper_bound:
+            result_indices.append(eos_indices[i])
+    # if len(eos_indices) > 0:
+    #     print("EOS indices:", eos_indices, "Skip indices:", result_indices, "Percentage {}/{}={}".format(len(result_indices), len(eos_indices), len(result_indices)/len(eos_indices)))
+    #     print("Similarity scores:", sim_scores)
+    # else:
+    #     print("No EOS indices")
+    return result_indices
+
+def merge_neighboring_docs(chunk, sim_func, eos_id, replace_token_id, lower_bound, upper_bound):
+    """
+    Merge neighboring documents if they have similarity
+    Args:
+        chunk: an array of tokens
+        eos_id: EOS token id used to mark the boundary of documents
+        replace_token_id: default is 13, which is the '\n' token
+
+    Returns: a new array with the EOS tokens replaced
+    """
+    to_replace = get_eos_indices_between_relevant_docs(chunk, sim_func, eos_id, lower_bound, upper_bound)
+    # assert that the token at each index is the EOS token
+    assert all(chunk[i] == eos_id for i in to_replace), "Not all tokens to replace are EOS tokens"
+    chunk[to_replace] = replace_token_id
+    return chunk
 
 def code(dtype):
     for k in dtypes:
@@ -40,7 +125,7 @@ HDR_SIZE = 24  # bytes
 
 class PackedDataset(IterableDataset):
     def __init__(
-        self, filenames, n_chunks, block_size, seed=12345, shuffle=True, wrap=False, num_processes=1, process_rank=0, mask_attn=False
+        self, filenames, n_chunks, block_size, seed=12345, shuffle=True, wrap=False, num_processes=1, process_rank=0, mask_attn=False, merge_method="none"
     ):
         self._filenames = filenames
         self._n_chunks = n_chunks
@@ -51,6 +136,7 @@ class PackedDataset(IterableDataset):
         self._num_processes = num_processes
         self._process_rank = process_rank
         self._mask_attn = mask_attn
+        self._merge_method = merge_method
 
     def __iter__(self):
         worker_info = get_worker_info()
@@ -70,6 +156,7 @@ class PackedDataset(IterableDataset):
             shuffle=self._shuffle,
             wrap=self._wrap,
             mask_attn=self._mask_attn,
+            merge_method=self._merge_method
         )
 
 
@@ -135,7 +222,7 @@ class PackedDatasetBuilder(object):
 
 
 class PackedDatasetIterator:
-    def __init__(self, filenames, n_chunks, block_size, seed, shuffle, wrap, mask_attn):
+    def __init__(self, filenames, n_chunks, block_size, seed, shuffle, wrap, mask_attn, merge_method):
         self._seed = seed
         self._shuffle = shuffle
         self._rng = np.random.default_rng(seed) if shuffle else None
@@ -160,10 +247,13 @@ class PackedDatasetIterator:
 
         self._block_idxs = []
         self._curr_idx = 0
-        print("In iterator, whether we are masking the attention?")
-        print("mask_attn", mask_attn)
+        print("In iterator, whether we are masking the attention?", mask_attn)
+        print("In iterator, the merge method is", merge_method)
         self._mask_attn = mask_attn
-
+        assert self._mask_attn in ["adaptive", "strict", ""], "Mask attn must be either adaptive or strict, but got {}".format(self._mask_attn)
+        self._merge_method = merge_method
+        if self._mask_attn == "adaptive":
+            assert self._merge_method == "overlap", "Merge method must be overlap when mask_attn is adaptive, but got {}".format(self._merge_method)
         self._load_n_chunks()
 
     def _read_header(self, path):
@@ -230,8 +320,16 @@ class PackedDatasetIterator:
         arr = torch.from_numpy(arr.astype(np.int64)) # block size here is 8193
         # print("Block size", self._block_size, "arr shape", arr.shape, "arr dtype", arr.dtype, "arr", arr)
         self._curr_idx += 1
+        if self._merge_method == "overlap":
+            arr = merge_neighboring_docs(arr, sim_func=calculate_bigram_set_overlap, eos_id=2, replace_token_id=13, lower_bound=0.1, upper_bound=0.5)
+        else:
+            assert self._merge_method == "no", "Merge method must be either overlap or no, but got {}".format(self._merge_method)
         if self._mask_attn:
-            cur_fragment_lens, cur_fragment_nums = get_fragment_lens(arr[:self._block_size-1]) # only calculate the input
+            if self._mask_attn == "adaptive":
+                skip_eos_indices = get_eos_indices_between_relevant_docs(arr, sim_func=calculate_bigram_set_overlap, eos_id=2, lower_bound=0.1, upper_bound=0.5)
+                cur_fragment_lens, cur_fragment_nums = get_fragment_lens(arr[:self._block_size-1], skip_eos_indices)
+            else:
+                cur_fragment_lens, cur_fragment_nums = get_fragment_lens(arr[:self._block_size-1], []) # only calculate the input
             # print("Yieleding with mask attn, shapes are : ", arr.shape, len(cur_fragment_lens), cur_fragment_nums)
             return {"idx": arr, "fragment_lens": cur_fragment_lens, "fragment_nums": cur_fragment_nums}
         else:

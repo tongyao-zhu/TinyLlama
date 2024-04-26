@@ -49,7 +49,8 @@ class Config:
     _mlp_class: Literal["GptNeoxMLP", "LLaMAMLP"] = "GptNeoxMLP"
     intermediate_size: Optional[int] = None
     condense_ratio: int = 1
-    intradoc_mask: bool=False
+    intradoc_mask: str=""
+    merge_method: str="no"
 
     def __post_init__(self):
         # error checking
@@ -320,6 +321,65 @@ tiny_LLaMA = [
     ),
     dict(
         org="StatNLP-research",
+        name="tiny_LLaMA_360M_8k_intramask",
+        block_size=8192,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=18,  # 16
+        n_head=16,  # 16
+        n_embd=1024,  # 1024
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,
+        _mlp_class="LLaMAMLP",
+        intermediate_size=4096,
+        n_query_groups=16,  # 16
+        intradoc_mask="strict",
+    ),
+    dict(
+        org="StatNLP-research",
+        name="tiny_LLaMA_360M_8k_intramask_olm",
+        block_size=8192,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=18,  # 16
+        n_head=16,  # 16
+        n_embd=1024,  # 1024
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,
+        _mlp_class="LLaMAMLP",
+        intermediate_size=4096,
+        n_query_groups=16,  # 16
+        intradoc_mask="strict",
+        merge_method="overlap",
+    ),
+    dict(
+        org="StatNLP-research",
+        name="tiny_LLaMA_360M_8k_adamask",
+        block_size=8192,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=18,  # 16
+        n_head=16,  # 16
+        n_embd=1024,  # 1024
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,
+        _mlp_class="LLaMAMLP",
+        intermediate_size=4096,
+        n_query_groups=16,  # 16
+        intradoc_mask="adaptive",
+        merge_method="overlap",
+    ),
+    dict(
+        org="StatNLP-research",
         name="tiny_LLaMA_120M",
         block_size=2048,
         vocab_size=32000,
@@ -444,7 +504,47 @@ tiny_LLaMA = [
         _mlp_class="LLaMAMLP",
         intermediate_size=5632,
         n_query_groups=4,
-        intradoc_mask=True
+        intradoc_mask="strict"
+    ),
+    dict(
+        org="StatNLP-research",
+        name="tiny_LLaMA_1b_8k_intramask_olm",
+        block_size=8192,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=22,
+        n_head=32,
+        n_embd=2048,
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,  # Llama 2 use 1e-5. Llama 1 use 1e-6
+        _mlp_class="LLaMAMLP",
+        intermediate_size=5632,
+        n_query_groups=4,
+        intradoc_mask="strict",
+        merge_method="overlap"
+    ),
+    dict(
+        org="StatNLP-research",
+        name="tiny_LLaMA_1b_8k_adamask",
+        block_size=8192,
+        vocab_size=32000,
+        padding_multiple=64,
+        n_layer=22,
+        n_head=32,
+        n_embd=2048,
+        rotary_percentage=1.0,
+        parallel_residual=False,
+        bias=False,
+        _norm_class="FusedRMSNorm",
+        norm_eps=1e-5,  # Llama 2 use 1e-5. Llama 1 use 1e-6
+        _mlp_class="LLaMAMLP",
+        intermediate_size=5632,
+        n_query_groups=4,
+        intradoc_mask="adaptive",
+        merge_method="overlap"
     )
 ]
 configs.extend(tiny_LLaMA)
