@@ -6,6 +6,8 @@ FULL_DATA_PATH=/home/aiops/zhuty/ret_pretraining_data/sample_processed/$DATASET_
 VALID_DATA_PATH=/home/aiops/zhuty/ret_pretraining_data/sample_processed/$VALID_DATASET_NAME/valid
 export MODEL_NAME=$1
 export resume=$4
+export eval_only=$5
+export suffix=$6
 
 # check if we need to resume
 if [[ $resume == "true" ]]; then
@@ -16,8 +18,16 @@ else
   export resume=false
 fi
 
+if [[ $eval_only == "true" ]]; then
+  echo "Evaluating only"
+  export eval_only=true
+else
+  echo "Training and evaluating"
+  export eval_only=false
+fi
+
 # List of valid model names
-valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_8k" "tiny_LLaMA_360M" "tiny_LLaMA_360M_4k" "tiny_LLaMA_360M_8k" "tiny_LLaMA_1b_8k_intramask") # Add more model names as needed
+valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_8k" "tiny_LLaMA_360M" "tiny_LLaMA_360M_4k" "tiny_LLaMA_360M_8k" "tiny_LLaMA_1b_8k_intramask" "tiny_LLaMA_1b_8k_adamask" "tiny_LLaMA_1b_8k_intramask_olm" "tiny_LLaMA_360M_8k_intramask" "tiny_LLaMA_360M_8k_intramask_olm" "tiny_LLaMA_360M_8k_adamask") # Add more model names as needed
 
 # Function to check if a model name is valid
 is_valid_model() {
@@ -38,6 +48,11 @@ fi
 
 export GPU_MEMORY=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits -i 0)
 export WANDB_NAME=$MODEL_NAME\_$DATASET_NAME
+if [[ $suffix != "" ]]; then
+  echo "Adding suffix $suffix"
+  export WANDB_NAME=$WANDB_NAME\_$suffix
+  echo "WANDB_NAME=$WANDB_NAME"
+fi
 export NUMBER_OF_GPU=$(python -c "import torch; print(torch.cuda.device_count())")
 export WANDB_TAGS="pretraining,$DATASET_NAME,$MODEL_NAME"
 echo "Using $NUMBER_OF_GPU GPUs"
@@ -53,7 +68,8 @@ lightning run model \
     pretrain/tinyllama.py --num_devices $NUMBER_OF_GPU \
     --train_data_dir $FULL_DATA_PATH \
     --val_data_dir $VALID_DATA_PATH \
-    --resume $resume
+    --resume $resume \
+    --eval_only $eval_only
 
 # sample usage
 # bash scripts/pretraining.sh redpajama_2b
