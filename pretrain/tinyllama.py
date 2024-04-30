@@ -245,11 +245,14 @@ def train(fabric, state, train_dataloader, val_dataloader, monitor, resume, eval
     
     initial_iter = state["iter_num"]
     curr_iter = 0
-            
+    initial_time = time.perf_counter()
+    print("initial_iter", initial_iter, "state" ,state )
     loss_func = FusedCrossEntropyLoss()
     for  train_data in train_dataloader:
         # resume loader state. This is not elegant but it works. Should rewrite it in the future.
         if resume:
+            if curr_iter%1000 == 0:
+                print("curr_iter", curr_iter, "took", time.perf_counter() - initial_time)
             if curr_iter < initial_iter:
                 curr_iter += 1
                 continue

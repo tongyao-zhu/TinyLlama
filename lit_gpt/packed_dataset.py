@@ -12,21 +12,43 @@ from torch.utils.data import IterableDataset, get_worker_info
 
 dtypes = {1: np.uint8, 2: np.int8, 3: np.int16, 4: np.int32, 5: np.int64, 6: np.float32, 7: np.float64, 8: np.uint16}
 
-def get_fragment_lens(chunk, skip_indices):
-    # adapted from https://github.com/yuzhaouoe/pretraining-data-packing/blob/8ee89732e73e9c5dec5af858289512206a050a0d/packing_dataset.py#L165
-    # need to calculate the fragment lengths for each chunk
-    chunk_size = len(chunk)
-    cur_fragment_lens = []
-    prev = 0
-    for token_idx, token in enumerate(chunk):
-        if token == 2 and token_idx not in skip_indices:
-            cur_fragment_lens.append(token_idx - prev + 1)
-            prev = token_idx + 1
-    if prev != chunk_size:
-        cur_fragment_lens.append(chunk_size - prev)
-    # print("Fragment lens:", cur_fragment_lens)
-    # print("Sum of fragment lens:", sum(cur_fragment_lens))
-    return cur_fragment_lens, len(cur_fragment_lens)
+# def get_fragment_lens(chunk, skip_indices):
+#     # adapted from https://github.com/yuzhaouoe/pretraining-data-packing/blob/8ee89732e73e9c5dec5af858289512206a050a0d/packing_dataset.py#L165
+#     # need to calculate the fragment lengths for each chunk
+#     chunk_size = len(chunk)
+#     cur_fragment_lens = []
+#     prev = 0
+#     for token_idx, token in enumerate(chunk):
+#         if token == 2 and token_idx not in skip_indices:
+#             cur_fragment_lens.append(token_idx - prev + 1)
+#             prev = token_idx + 1
+#     if prev != chunk_size:
+#         cur_fragment_lens.append(chunk_size - prev)
+#     # print("Fragment lens:", cur_fragment_lens)
+#     # print("Sum of fragment lens:", sum(cur_fragment_lens))
+#     return cur_fragment_lens, len(cur_fragment_lens)
+
+# Optimized function using NumPy
+def get_fragment_lens_optimized(chunk, skip_indices):
+    skip_indices_set = set(skip_indices)
+    is_two = np.where(chunk == 2)[0]
+    filtered_indices = np.array([idx for idx in is_two if idx not in skip_indices_set])
+    # if len(skip_indices) > 0:
+    #     print("Skipper indices:", len(skip_indices), "Filtered indices:", len(filtered_indices))
+    # # Adjust how fragment lengths are calculated to match the original function
+    if filtered_indices.size > 0:
+        fragment_lengths = []
+        prev = 0
+        for idx in filtered_indices:
+            fragment_lengths.append(idx - prev + 1)
+            prev = idx + 1
+        if prev < len(chunk):
+            fragment_lengths.append(len(chunk) - prev)
+    else:
+        fragment_lengths = [len(chunk)]  # If no valid indices, the entire chunk is one fragment
+
+    return fragment_lengths, len(fragment_lengths)
+
 
 def split_into_docs(chunk, eos_id = 2):
     """
@@ -88,7 +110,7 @@ def get_eos_indices_between_relevant_docs(chunk, sim_func, eos_id, lower_bound, 
         sim = sim_func(doc_bigrams[i], doc_bigrams[i+1])
         sim_scores.append(sim)
         if lower_bound <= sim <= upper_bound:
-            result_indices.append(eos_indices[i])
+            result_indices.append(eos_indices[i].item())
     # if len(eos_indices) > 0:
     #     print("EOS indices:", eos_indices, "Skip indices:", result_indices, "Percentage {}/{}={}".format(len(result_indices), len(eos_indices), len(result_indices)/len(eos_indices)))
     #     print("Similarity scores:", sim_scores)
@@ -320,16 +342,21 @@ class PackedDatasetIterator:
         arr = torch.from_numpy(arr.astype(np.int64)) # block size here is 8193
         # print("Block size", self._block_size, "arr shape", arr.shape, "arr dtype", arr.dtype, "arr", arr)
         self._curr_idx += 1
-        if self._merge_method == "overlap":
+        if self._merge_method == "overlap" and self._mask_attn == "strict": # only merge neighboring docs when mask_attn is strict
             arr = merge_neighboring_docs(arr, sim_func=calculate_bigram_set_overlap, eos_id=2, replace_token_id=13, lower_bound=0.1, upper_bound=0.5)
         else:
-            assert self._merge_method == "no", "Merge method must be either overlap or no, but got {}".format(self._merge_method)
+            assert self._merge_method == "no" or (self._merge_method=="overlap" and self._mask_attn=="adaptive") , "Merge method must be either overlap or no, but got {}".format(self._merge_method)
         if self._mask_attn:
             if self._mask_attn == "adaptive":
                 skip_eos_indices = get_eos_indices_between_relevant_docs(arr, sim_func=calculate_bigram_set_overlap, eos_id=2, lower_bound=0.1, upper_bound=0.5)
-                cur_fragment_lens, cur_fragment_nums = get_fragment_lens(arr[:self._block_size-1], skip_eos_indices)
+                cur_fragment_lens, cur_fragment_nums = get_fragment_lens_optimized(arr[:self._block_size-1], skip_eos_indices)
             else:
-                cur_fragment_lens, cur_fragment_nums = get_fragment_lens(arr[:self._block_size-1], []) # only calculate the input
+                # cur_fragment_lens, cur_fragment_nums = get_fragment_lens(arr[:self._block_size-1], []) # only calculate the input
+                cur_fragment_lens, cur_fragment_nums = get_fragment_lens_optimized(arr[:self._block_size-1], [])
+
+                # assert cur_fragment_nums == cur_fragment_nums2, "Fragment nums do not match"
+                # assert cur_fragment_lens == cur_fragment_lens2, "Fragment lens do not match"
+
             # print("Yieleding with mask attn, shapes are : ", arr.shape, len(cur_fragment_lens), cur_fragment_nums)
             return {"idx": arr, "fragment_lens": cur_fragment_lens, "fragment_nums": cur_fragment_nums}
         else:
