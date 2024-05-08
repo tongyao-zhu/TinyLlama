@@ -11,7 +11,8 @@ from lit_gpt.tokenizer import Tokenizer
 from pathlib import Path
 
 TOKENIZER_PATH = '/home/aiops/zhuty/tinyllama/models'
-MODEL_CONFIG = "tiny_LLaMA_1b_8k"
+# MODEL_CONFIG = "tiny_LLaMA_1b_8k"
+MODEL_CONFIG = "tiny_LLaMA_360M_8k"
 
 
 # tinycoder_1M
@@ -168,8 +169,17 @@ if __name__ == "__main__":
     model_path = args.model
     dataset_path = args.dataset
     model_name = model_path.split("/")[-2]
+    # remove the pth
+    model_ckpt = model_path.split("/")[-1].split(".")[0]
+    ds_name = dataset_path.split("/")[-3]
+    assert ds_name in ['cc', 'book', 'arxiv' , 'rpwiki_en'], "Dataset " + ds_name + " is not supported."
+    print("Model: ", model_name, " Dataset: ", ds_name, " Chunk: ", args.chunk_n, " Model ckpt: ", model_ckpt)
     save_file_name = os.path.join("/home/aiops/zhuty/tinyllama/scripts/eval_ppl/results",
-                                  f"{model_name}_chunk_{args.chunk_n}.json")
+                                  f"{model_name}_chunk_{args.chunk_n}_{ds_name}_{model_ckpt}.json")
+    if os.path.exists(save_file_name):
+        print("Skip model: ", model_path, "because saved file exists.", "File: ", save_file_name)
+        exit(0)
+
     normal_loss = label_model_loss(dataset_path, model_path,
                                        verbose=True, save_file_name=save_file_name,
                                        average_by_token=False)
