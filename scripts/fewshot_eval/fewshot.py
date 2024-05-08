@@ -13,6 +13,7 @@ eval_args.add_argument("--flash_attn_2", type=bool, default=False)
 eval_args.add_argument("--max_length", type=int, default=8192)
 eval_args.add_argument("--downsample", action="store_true")
 eval_args.add_argument("--print", action="store_true")
+eval_args.add_argument("--num_retrieved_docs", type=int, default=0)
 eval_args = eval_args.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = f"{eval_args.device}"
@@ -385,31 +386,31 @@ def process_ctx(ctx):
     return ctx
 
 
-def get_nq_obqa_prompt(input_example, demonstrations):
+def get_nq_obqa_prompt(input_example, demonstrations, num_top_docs=2):
     prompt = ""
     for demon in demonstrations:
         context = ""
-        for ctx in demon["ctxs"][:2]:
+        for ctx in demon["ctxs"][:num_top_docs]:
             ctx_text = process_ctx(ctx['text'])
             context += f"{ctx['title']}. {ctx_text}\n"
         prompt += f"Context: {context}Question: {demon['question']}\nAnswer: {demon['answers'][0]}\n\n"
 
     context = ""
-    for ctx in input_example["ctxs"][:2]:
+    for ctx in input_example["ctxs"][:num_top_docs]:
         ctx_text = process_ctx(ctx['text'])
         context += f"{ctx['title']}. {ctx_text}\n"
     prompt += f"Context: {context}Question: {input_example['question']}\nAnswer:"
     return prompt
 
 
-def nq_obqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
+def nq_obqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, num_retrieved_docs ) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 16
     train_data = load_json(TASK_DATA_PATH["nq_obqa"]["validation"])
     data = load_json(TASK_DATA_PATH["nq_obqa"]["test"])
     demonstrations = get_obqa_demonstration(train_data, n_shot, seed)
     prompt_list = []
     for item in data:
-        prompt_list.append({"prompt": get_nq_obqa_prompt(item, demonstrations)})
+        prompt_list.append({"prompt": get_nq_obqa_prompt(item, demonstrations, num_top_docs=num_retrieved_docs)})
     all_pred_ans = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot,
                             seed)
     all_pred_ans = [pred.split("\n")[0] for pred in all_pred_ans]
@@ -477,11 +478,11 @@ def squad_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, ma
     return {"score": acc}, {"prompts": prompt_list, "preds": predictions}
 
 
-def get_tq_obqa_prompt(input_example, demonstrations):
+def get_tq_obqa_prompt(input_example, demonstrations, num_top_docs=2):
     prompt = ""
     for demon in demonstrations:
         context = ""
-        for ctx in demon["ctxs"][:2]:
+        for ctx in demon["ctxs"][:num_top_docs]:
             context += f"{ctx['title']}. {ctx['text']}\n"
         if "target" in demon.keys():
             cur_answer = demon["target"]
@@ -490,20 +491,20 @@ def get_tq_obqa_prompt(input_example, demonstrations):
         prompt += f"Context: {context}Question: {demon['question']}\nAnswer: {cur_answer}\n\n"
 
     context = ""
-    for ctx in input_example["ctxs"][:2]:
+    for ctx in input_example["ctxs"][:num_top_docs]:
         context += f"{ctx['title']}. {ctx['text']}\n"
     prompt += f"Context: {context}Question: {input_example['question']}\nAnswer:"
     return prompt
 
 
-def tq_obqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
+def tq_obqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, num_retrieved_docs) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 16
     train_data = load_json(TASK_DATA_PATH["tq_obqa"]["train"])
     data = load_json(TASK_DATA_PATH["tq_obqa"]["test"])
     demonstrations = get_obqa_demonstration(train_data, n_shot, seed)
     prompt_list = []
     for item in data:
-        prompt_list.append({"prompt": get_tq_obqa_prompt(item, demonstrations)})
+        prompt_list.append({"prompt": get_tq_obqa_prompt(item, demonstrations, num_top_docs=num_retrieved_docs)})
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     predictions = [pred.split("\n")[0] for pred in predictions]
     em_score = eval_generation_em_answers(data, predictions) * 100
@@ -540,6 +541,9 @@ eval_callables = {
     "squad": squad_evaluation,
     "tq_obqa": tq_obqa_evaluation,
 }
+
+def is_obqa(task):
+    return "obqa" in task
 
 
 def main():
@@ -583,11 +587,21 @@ def main():
     # mke sure the outputs folder exists
     os.makedirs(f"./outputs/{save_path}", exist_ok=True)
     task_save_path = f"./outputs/{save_path}/{eval_args.task}_{eval_args.n_shot}_{eval_args.seed}.json"
+    if is_obqa(eval_args.task):
+        task_save_path = f"./outputs/{save_path}/{eval_args.task}_{eval_args.n_shot}_{eval_args.seed}_{eval_args.num_retrieved_docs}.json"
+
     if os.path.exists(task_save_path):
         logger.info(f"{task_save_path} exists, skipping...")
         return
-    score, prompts_and_preds = evaluation(model, tokenizer, generation_kwargs, eval_args.task, eval_args.n_shot,
+    if not is_obqa(eval_args.task):
+        assert eval_args.num_retrieved_docs == 0, "num_retrieved_docs must not be specified for non-obqa tasks"
+        score, prompts_and_preds = evaluation(model, tokenizer, generation_kwargs, eval_args.task, eval_args.n_shot,
                        eval_args.seed, eval_args.max_length - 5, eval_args.batch_size)
+    else:
+        assert eval_args.num_retrieved_docs != -1, "num_retrieved_docs must be specified for obqa tasks"
+        score, prompts_and_preds = evaluation(model, tokenizer, generation_kwargs, eval_args.task, eval_args.n_shot,
+                       eval_args.seed, eval_args.max_length - 5, eval_args.batch_size, num_retrieved_docs=eval_args.num_retrieved_docs)
+
     results.update(score)
     results = json.dumps(results)
     logger.info(results)
