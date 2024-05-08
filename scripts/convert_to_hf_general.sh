@@ -39,6 +39,8 @@ mv $LIT_CKPT_DIR/$CKPT_PREFIX.bin $OUTPUT_DIR/pytorch_model.bin
 # bash convert_to_hf_general.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_intramask_cc_8k iter-110000-ckpt-step-27500
 # bash convert_to_hf_general.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_cc_merged_v2_8k iter-110000-ckpt-step-27500
 # bash convert_to_hf_general.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_intramask_cc_merged_v2_8k iter-110000-ckpt-step-27500
+# bash convert_to_hf_general.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_adamask_cc_merged_v2_8k iter-110000-ckpt-step-27500
+# bash convert_to_hf_general.sh /home/aiops/zhuty/tinyllama/out/tiny_LLaMA_360M_8k_intramask_cc_merged_v2_8k iter-160000-ckpt-step-40000
 
 # bash convert_to_hf_general.sh /s3/tinyllama/out_mar13/out/tiny_LLaMA_360M_8k_cc_merged_v1_8k iter-160000-ckpt-step-40000
 # bash convert_to_hf_general.sh /s3/tinyllama/out_mar13/out/tiny_LLaMA_360M_8k_cc_merged_v2_8k iter-160000-ckpt-step-40000
