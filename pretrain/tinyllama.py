@@ -246,11 +246,27 @@ def train(fabric, state, train_dataloader, val_dataloader, monitor, resume, eval
     initial_iter = state["iter_num"]
     curr_iter = 0
     initial_time = time.perf_counter()
-    print("initial_iter", initial_iter, "state" ,state )
+    print("initial_iter", initial_iter, "state" ,state)
+    wandb_name = os.environ['WANDB_NAME']
+    go_through_dataloader = True
+    if "cont" in wandb_name:
+        go_through_dataloader = False
+        fabric.print("go_through_dataloader is False, because the wandb_name contains 'cont'.")
+
+    if '360M' in model_name:
+        # round the current iter to the nearest multiple of 120000 below initial iter, because 120000 is like 1 epoch
+        curr_iter = initial_iter // 120000 * 120000
+    elif '1b' in model_name:
+        # round the current iter to the nearest multiple of 240000 below initial iter, because 240000 is like 1 epoch
+        curr_iter = initial_iter // 240000 * 240000
+    else:
+        raise ValueError("Invalid model name")
+
+    print("curr_iter origins from lower bound of 240000 of initial iter ", initial_iter, "curr_iter", curr_iter)
     loss_func = FusedCrossEntropyLoss()
     for  train_data in train_dataloader:
         # resume loader state. This is not elegant but it works. Should rewrite it in the future.
-        if resume:
+        if resume and go_through_dataloader:
             if curr_iter%1000 == 0:
                 print("curr_iter", curr_iter, "took", time.perf_counter() - initial_time)
             if curr_iter < initial_iter:
