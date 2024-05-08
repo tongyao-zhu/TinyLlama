@@ -12,8 +12,9 @@ export LM_HARNESSS_CACHE_PATH=/home/aiops/zhuty/lm_harness_cache
 
 task=$1
 model=$2
+numshot=$3
 
-output_path=/home/aiops/zhuty/tinyllama/scripts/lm_harness_eval/out/$model/$task
+output_path=/home/aiops/zhuty/tinyllama/scripts/lm_harness_eval/out/$model/$task/$numshot
 if [ ! -d $output_path ]; then
    echo "Creating output directory: $output_path"
    mkdir -p $output_path
@@ -31,7 +32,7 @@ lm_eval --model hf \
     --model_args pretrained=$model,tokenizer="meta-llama/Llama-2-7b-hf" \
     --tasks $task \
     --batch_size auto:4 \
-    --num_fewshot 0 \
+    --num_fewshot $numshot \
     --output_path $output_path \
     --log_samples
 
