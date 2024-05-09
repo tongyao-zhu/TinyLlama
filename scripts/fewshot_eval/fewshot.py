@@ -95,6 +95,9 @@ TASK_DATA_PATH = {
         "train": "./eval_data/squad_train.jsonl",
         "validation": "./eval_data/squad_validation.jsonl"
     },
+    "memtrap": {
+        "test": "./eval_data/memtrap_proverb_ending_test.jsonl"
+    },
 }
 for task in TASK_DATA_PATH:
     for split in TASK_DATA_PATH[task]:
@@ -186,6 +189,20 @@ def cbqa_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max
     prompt_list = []
     for item in test_data:
         prompt_list.append({"prompt": get_cbqa_prompt(item, demonstrations)})
+    all_pred_ans = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot,
+                            seed)
+    all_pred_ans = [pred.split("\n")[0] for pred in all_pred_ans]
+    em_score = eval_generation_em(test_data, all_pred_ans) * 100
+    prompts_and_preds = {"prompts": prompt_list, "preds": all_pred_ans}
+    return {"score": em_score}, prompts_and_preds
+
+def memtrap_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size):
+    generation_kwargs["max_new_tokens"] = 16
+    assert n_shot == 0, "n_shot must be 0 for memtrap, as it is a zero-shot task"
+    test_data = load_jsonl(TASK_DATA_PATH[task]["test"])
+    prompt_list = []
+    for item in test_data:
+        prompt_list.append({"prompt": item["prompt"]})
     all_pred_ans = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot,
                             seed)
     all_pred_ans = [pred.split("\n")[0] for pred in all_pred_ans]
@@ -477,6 +494,23 @@ def squad_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, ma
     acc = correct_cnt / len(test_data) * 100
     return {"score": acc}, {"prompts": prompt_list, "preds": predictions}
 
+def nqswap_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
+    generation_kwargs["max_new_tokens"] = 16
+    train_data = load_jsonl(TASK_DATA_PATH["nqswap"]["train"])
+    test_data = load_jsonl(TASK_DATA_PATH["nqswap"]["validation"])
+    demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
+    correct_cnt = 0
+    prompt_list = []
+    for item in test_data:
+        prompt_list.append({"prompt": get_squad_prompt(item, demonstrations)})
+    predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
+    for pred, item in zip(predictions, test_data):
+        pred = normalise_pred(pred)
+        targets = item['answers']['text']
+        if exact_match_score_with_multiple_candidates(pred, targets):
+            correct_cnt += 1
+    acc = correct_cnt / len(test_data) * 100
+    return {"score": acc}, {"prompts": prompt_list, "preds": predictions}
 
 def get_tq_obqa_prompt(input_example, demonstrations, num_top_docs=2):
     prompt = ""
@@ -540,6 +574,7 @@ eval_callables = {
     "tweet_offensive": tweet_offensive_evaluation,
     "squad": squad_evaluation,
     "tq_obqa": tq_obqa_evaluation,
+    "memtrap": memtrap_evaluation
 }
 
 def is_obqa(task):
