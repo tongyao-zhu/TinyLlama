@@ -12,6 +12,7 @@ model_path = sys.argv[1]
 # ]:
 tokenizer = LlamaTokenizer.from_pretrained('/home/aiops/zhuty/tinyllama/models' , padding_side='left', truncation_side="left")
 tokenizer.pad_token = tokenizer.eos_token
+tokenizer.add_bos_token = False
 print("Input model path", model_path)
 model = LlamaForCausalLM.from_pretrained(model_path)
 new_name = "_".join(model_path.split("/")[-2:])
