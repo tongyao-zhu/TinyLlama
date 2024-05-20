@@ -30,6 +30,8 @@ dataset = PackedDataset(
     seed=42,
     num_processes=10,
     process_rank=0,
+    mask_attn="",
+    merge_method="no",
 )
 
 
@@ -143,6 +145,10 @@ for i, item in tqdm.tqdm(enumerate(dataset), desc = "Processing"):
 
     # Find the indices where EOS token occurs
     eos_indices = np.where(item == EOS_TOKEN)[0]
+    bos_indices = np.where(item == tokenizer.bos_id)[0]
+    if len(bos_indices) == 0:
+        print("No BOS token found in the chunk")
+
     # print("EOS indices:", eos_indices)
     eos_counts.append(len(eos_indices))
 
