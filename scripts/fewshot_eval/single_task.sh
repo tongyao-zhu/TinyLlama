@@ -20,15 +20,17 @@ if [[ $2 == "nq" ]] || [[ $2 == "tq" ]]; then
 fi
 
 if [[ $2 == "squad" ]]; then
-  batch_size=16
+  batch_size=4
 elif [[ $2 == "hotpotqa" ]]; then
-  batch_size=2
+  batch_size=1
 elif [[ $2 == "tq_obqa" ]]; then
-  batch_size=2
+  batch_size=1
 elif [[ $2 == "agnews" ]]; then
-  batch_size=4
+  batch_size=2
 elif [[ $2 == "dbpedia" ]]; then
-  batch_size=4
+  batch_size=2
+elif [[ $2 == "memtrap" ]]; then
+  batch_size=16
 fi
 
 echo "Batch size" $batch_size
