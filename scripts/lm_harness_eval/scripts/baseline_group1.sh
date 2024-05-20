@@ -1,0 +1,2 @@
+ sailctl job create harbaselinewikitextcc8k -p low  -g 1  --debug --command-line-args  ' source /home/aiops/zhuty/start.sh ; cd /home/aiops/zhuty/tinyllama/scripts/lm_harness_eval/ ; bash eval.sh wikitext TinyLlama/TinyLlama-1.1B-step-50K-105b 0' 
+ sailctl job create harbaselinelambadastandardcc8k -p low  -g 1  --debug --command-line-args  ' source /home/aiops/zhuty/start.sh ; cd /home/aiops/zhuty/tinyllama/scripts/lm_harness_eval/ ; bash eval.sh lambada_standard TinyLlama/TinyLlama-1.1B-step-50K-105b 0' 
