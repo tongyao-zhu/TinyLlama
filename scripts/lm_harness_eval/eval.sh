@@ -29,7 +29,7 @@ if [ -f "$output_path/result.json" ]; then
 fi
 
 lm_eval --model hf \
-    --model_args pretrained=$model,tokenizer="meta-llama/Llama-2-7b-hf" \
+    --model_args pretrained=$model,tokenizer="tyzhu/tinyllama_common_tokenizer",add_bos_token=False,trust_remote_code=True,prefix_token_id=2 \
     --tasks $task \
     --batch_size auto:4 \
     --num_fewshot $numshot \
