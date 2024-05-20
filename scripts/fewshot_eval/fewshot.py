@@ -1,6 +1,7 @@
 import argparse
 import os
 from typing import Dict, Tuple
+import json
 
 eval_args = argparse.ArgumentParser()
 eval_args.add_argument("--model_path", type=str, required=True)
@@ -102,7 +103,7 @@ TASK_DATA_PATH = {
 for task in TASK_DATA_PATH:
     for split in TASK_DATA_PATH[task]:
         if not os.path.exists(TASK_DATA_PATH[task][split]):
-            raise FileNotFoundError
+            raise FileNotFoundError(f"File {TASK_DATA_PATH[task][split]} not found")
 
 PRINT = eval_args.print
 DOWNSAMPLE = eval_args.downsample
@@ -128,6 +129,13 @@ def load_jsonl(path, max_line=None):
 def normalise_pred(pred):
     return pred.strip().split("\n")[0].strip()
 
+def map_pred_to_hate_or_non_hate(pred):
+    if pred.startswith("Hate"):
+        return "Hate"
+    elif pred.startswith("Non-hate"):
+        return "Non-hate"
+    else:
+        return pred
 
 class PromptDataset(Dataset):
     def __init__(self, prompt_list, tokenizer):
@@ -143,7 +151,7 @@ class PromptDataset(Dataset):
     def get_dataloader(self, batch_size, max_length):
         def collate_fn(items):
             batch = [item["prompt"] for item in items]
-            return self.tokenizer(batch, padding=True, return_tensors="pt", truncation=True, max_length=max_length)
+            return self.tokenizer(batch, padding=True, return_tensors="pt", truncation=True, max_length=max_length, add_special_tokens=False)
 
         return DataLoader(self, batch_size, shuffle=False, collate_fn=collate_fn, num_workers=8)
 
@@ -608,7 +616,7 @@ def main():
             eval_args.batch_size = 1
             model = LlamaForCausalLM.from_pretrained(eval_args.model_path, torch_dtype=torch.float16)
     else:
-        model = LlamaForCausalLM.from_pretrained(eval_args.model_path, torch_dtype=torch.float16)
+        model = LlamaForCausalLM.from_pretrained(eval_args.model_path, torch_dtype=torch.float16, token=json.load(open("/home/aiops/zhuty/hf_token.json")))
 
     model.eval()
     model = model.cuda()
