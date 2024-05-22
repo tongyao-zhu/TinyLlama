@@ -603,6 +603,22 @@ def main():
         "seed": eval_args.seed,
         "model": eval_args.model_path
     }
+
+    if "/home/aiops/" in eval_args.model_path:
+        # if running on local path
+        save_path = "-".join(eval_args.model_path.split("/")[-2:])
+    else:
+        save_path = eval_args.model_path.split("/")[-1].replace("_iter", "-iter")
+    # mke sure the outputs folder exists
+    os.makedirs(f"./outputs/{save_path}", exist_ok=True)
+    task_save_path = f"./outputs/{save_path}/{eval_args.task}_{eval_args.n_shot}_{eval_args.seed}.json"
+    if is_obqa(eval_args.task):
+        task_save_path = f"./outputs/{save_path}/{eval_args.task}_{eval_args.n_shot}_{eval_args.seed}_{eval_args.num_retrieved_docs}.json"
+
+    if os.path.exists(task_save_path):
+        logger.info(f"{task_save_path} exists, skipping...")
+        return
+
     tokenizer = LlamaTokenizer.from_pretrained('/home/aiops/zhuty/tinyllama/models' , padding_side='left', truncation_side="left")
     tokenizer.pad_token = tokenizer.eos_token
     if eval_args.flash_attn_2:
@@ -622,20 +638,7 @@ def main():
     model = model.cuda()
 
     evaluation = eval_callables[eval_args.task]
-    if "/home/aiops/" in eval_args.model_path:
-        # if running on local path
-        save_path = "-".join(eval_args.model_path.split("/")[-2:])
-    else:
-        save_path = eval_args.model_path.split("/")[-1].replace("_iter", "-iter")
-    # mke sure the outputs folder exists
-    os.makedirs(f"./outputs/{save_path}", exist_ok=True)
-    task_save_path = f"./outputs/{save_path}/{eval_args.task}_{eval_args.n_shot}_{eval_args.seed}.json"
-    if is_obqa(eval_args.task):
-        task_save_path = f"./outputs/{save_path}/{eval_args.task}_{eval_args.n_shot}_{eval_args.seed}_{eval_args.num_retrieved_docs}.json"
 
-    if os.path.exists(task_save_path):
-        logger.info(f"{task_save_path} exists, skipping...")
-        return
     if not is_obqa(eval_args.task):
         assert eval_args.num_retrieved_docs == 0, "num_retrieved_docs must not be specified for non-obqa tasks"
         score, prompts_and_preds = evaluation(model, tokenizer, generation_kwargs, eval_args.task, eval_args.n_shot,
