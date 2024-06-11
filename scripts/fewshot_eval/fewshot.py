@@ -656,8 +656,8 @@ def main():
 
     with open(task_save_path, "w") as fn:
         fn.write(results)
-    with open(task_save_path.replace(".json", "_prompts_and_preds.json"), "w") as fn:
-        json.dump(prompts_and_preds, fn, indent=4)
+    with open(task_save_path.replace(".json", "_prompts_and_preds_sample.json"), "w") as fn:
+        json.dump({"prompts": prompts_and_preds["prompts"][:10], "preds": prompts_and_preds["preds"][:10]}, fn, indent=4)
 
 if __name__ == '__main__':
     main()
