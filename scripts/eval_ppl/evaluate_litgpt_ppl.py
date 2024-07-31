@@ -11,8 +11,9 @@ from lit_gpt.tokenizer import Tokenizer
 from pathlib import Path
 
 TOKENIZER_PATH = '/home/aiops/zhuty/tinyllama/models'
-# MODEL_CONFIG = "tiny_LLaMA_1b_8k"
-MODEL_CONFIG = "tiny_LLaMA_360M_8k"
+MODEL_CONFIG = "tiny_LLaMA_1b_8k"
+MODEL_CONFIG = "tiny_LLaMA_1b_16k"
+# MODEL_CONFIG = "tiny_LLaMA_360M_8k"
 
 
 # tinycoder_1M
@@ -34,6 +35,13 @@ def load_lit_gpt_model(mode_path, tokenizer_path=TOKENIZER_PATH):
     model = model.cuda()
     return model, tokeinzer
 
+def load_hf_model(model_path):
+    model = AutoModelForCausalLM.from_pretrained(model_path, use_flash_attention_2=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_path,truncation_side='right')
+    model = model.to(torch.bfloat16)
+    model = model.cuda()
+    model.eval()
+    return model, tokenizer
 
 def get_hash(example):
     """Get hash of content field."""
@@ -69,24 +77,34 @@ def check_gpu_memory():
 is_80gb_gpu = check_gpu_memory()
 
 
+def process_and_tokenize(example, tokenizer, max_length=8192):
+    pass
+
 def label_model_loss(file_path, model_path,
                      verbose=False,
                      save_file_name=None,
                      average_by_token=False,
-                     max_length=8192):
+                     max_length=8192,
+                     batch_size=16,
+                     model_type='litgpt'):
     if verbose:
         print("Record example-level loss for the model.")
         #assert save_folder is not None
         #if not os.path.exists(save_folder):
             #os.makedirs(save_folder)
-    model, tokenizer = load_lit_gpt_model(model_path)
-    tokenizer.bos_id = tokenizer.eos_id
+    if model_type == 'hf':
+        model, tokenizer = load_hf_model(model_path)
+
+    elif model_type == 'litgpt':
+        model, tokenizer = load_lit_gpt_model(model_path)
+        tokenizer.bos_id = tokenizer.eos_id
+    else:
+        raise ValueError("Invalid model type: ", model_type)
     dataset = load_dataset("json",
                            data_dir=file_path,
                            split="train")
     # dataset = dataset.select(range(0, 100))
-    # preprocess and tokenize the dataset
-    batch_size = 16
+    # preprocess and tokenize the datase
     loss_fn = torch.nn.CrossEntropyLoss(reduction='none')
     loss_value = []
     lengths_list = []
@@ -99,7 +117,17 @@ def label_model_loss(file_path, model_path,
             # tokenize the batch
             batch_inputs = []
             for j in range(real_batch_size):
-                inputs_j = tokenizer.encode(batch["text"][j], max_length=max_length, device="cuda")
+                if model_type == 'hf':
+                    inputs_j = tokenizer.encode(batch["text"][j], max_length=max_length, truncation=True, add_special_tokens=False)
+                    inputs_j = torch.tensor(inputs_j, dtype=torch.long, device="cuda")
+                    print("Text:{}".format(batch["text"][j][:100]))
+                    print(inputs_j[0:10])
+                    print(inputs_j[-10:])
+                else:
+                    inputs_j = tokenizer.encode(batch["text"][j], max_length=max_length, device="cuda")
+                    print("Text:{}".format(batch["text"][j][:100]))
+                    print(inputs_j[0:10])
+                    print(inputs_j[-10:])
                 batch_inputs.append(inputs_j)
             # padding the batch
             max_len = max([len(inputs) for inputs in batch_inputs])
@@ -109,7 +137,10 @@ def label_model_loss(file_path, model_path,
                 input_ids[j, :len(batch_inputs[j])] = batch_inputs[j]
                 length_mask[j, :len(batch_inputs[j])] = 1
             # forward
-            logits = model(input_ids)
+            if model_type == 'hf':
+                logits = model(input_ids).logits
+            else:
+                logits = model(input_ids)
             # cacluate loss
             shift_logits = logits[..., :-1, :].contiguous()
             shift_logits = shift_logits.view(-1, shift_logits.size(-1))
@@ -145,6 +176,7 @@ def label_model_loss(file_path, model_path,
 def parse_args():
     parser= argparse.ArgumentParser(description='Evaluate PPL')
     parser.add_argument('--model', type=str, required=True, help='model path')
+    parser.add_argument('--model_type', default='litgpt', required=False, help='model type')
     parser.add_argument('--dataset', type=str, required=True, help='dataset path')
     parser.add_argument('--chunk_n', type=int, required=True, help='chunk number')
 #     parser.add_argument('--output', type=str, required=True, help='output path')
@@ -180,9 +212,15 @@ if __name__ == "__main__":
         print("Skip model: ", model_path, "because saved file exists.", "File: ", save_file_name)
         exit(0)
 
+    max_length, batch_size = 8192, 8
+    if '16k' in model_path:
+        print("Extending the model's max length to 16k")
+        max_length = 16384
+        batch_size = 8
+    print("Batch size: ", batch_size, )
     normal_loss = label_model_loss(dataset_path, model_path,
                                        verbose=True, save_file_name=save_file_name,
-                                       average_by_token=False)
+                                       average_by_token=False, max_length = max_length, batch_size=batch_size, model_type=args.model_type)
 
     print("Model: ", model_path, " Loss: ", normal_loss)
        # write the model name and loss into file
