@@ -179,7 +179,7 @@ def monkey_patch_packing_for_model(pretrained_model):
                 f"{config_type} is not supported, currently we only support: Mistral, Mixtral, Llama, Qwen2 for monkey-patch-packing"
             )
 
-        monkey_patch_for_model_with_name(model_type, modelling_type)
+        # monkey_patch_for_model_with_name(model_type, modelling_type)
 
     if config_type == "mixtralconfig":
         # if it is mixtral, we need to monkey-patch the load_balancing_loss_func
