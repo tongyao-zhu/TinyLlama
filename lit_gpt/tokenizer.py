@@ -54,11 +54,16 @@ class Tokenizer:
         bos: bool = False,
         eos: bool = True,
         max_length: int = -1,
+        bpe_dropout: float=0,
     ) -> torch.Tensor:
         if self.backend == "huggingface":
+            assert bpe_dropout == 0, "bpe_dropout not supported for huggingface tokenizers"
             tokens = self.processor.encode(string).ids
         elif self.backend == "sentencepiece":
-            tokens = self.processor.encode(string)
+            if bpe_dropout > 0:
+                tokens = self.processor.encode(string, enable_sampling=True, alpha=bpe_dropout)
+            else:
+                tokens = self.processor.encode(string)
         else:
             raise RuntimeError
         if bos:
