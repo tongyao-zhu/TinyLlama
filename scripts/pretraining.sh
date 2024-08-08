@@ -27,7 +27,7 @@ else
 fi
 
 # List of valid model names
-valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_8k" "tiny_LLaMA_360M" "tiny_LLaMA_360M_4k" "tiny_LLaMA_360M_8k" "tiny_LLaMA_1b_8k_intramask" "tiny_LLaMA_1b_8k_adamask" "tiny_LLaMA_1b_8k_intramask_olm" "tiny_LLaMA_360M_8k_intramask" "tiny_LLaMA_360M_8k_intramask_olm" "tiny_LLaMA_360M_8k_adamask") # Add more model names as needed
+valid_models=("tiny_LLaMA_1b" "tiny_LLaMA_120M" "tiny_LLaMA_120M_4k" "tiny_LLaMA_120M_8k" "tiny_LLaMA_1b_4k" "tiny_LLaMA_1b_4k_intramask" "tiny_LLaMA_1b_2k" "tiny_LLaMA_1b_2k_intramask" "tiny_LLaMA_1b_8k" "tiny_LLaMA_360M" "tiny_LLaMA_360M_4k" "tiny_LLaMA_360M_8k" "tiny_LLaMA_1b_8k_intramask" "tiny_LLaMA_1b_8k_matchmask" "tiny_LLaMA_1b_16k_matchmask" "tiny_LLaMA_1b_8k_adamask" "tiny_LLaMA_1b_8k_intramask_olm" "tiny_LLaMA_360M_8k_intramask" "tiny_LLaMA_360M_8k_intramask_olm" "tiny_LLaMA_360M_8k_adamask" "tiny_LLaMA_1b_16k" "tiny_LLaMA_1b_16k_adamask" "tiny_LLaMA_1b_16k_intramask") # Add more model names as needed
 
 # Function to check if a model name is valid
 is_valid_model() {
