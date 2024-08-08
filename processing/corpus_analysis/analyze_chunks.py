@@ -30,6 +30,8 @@ dataset = PackedDataset(
     seed=42,
     num_processes=10,
     process_rank=0,
+    merge_method= "no",
+    mask_attn=""
 )
 
 upper_limit = 100000
@@ -48,6 +50,7 @@ unique_terms_counts = []
 unique_bigram_counts = []
 not_diverse_count = 0
 for i, item in tqdm.tqdm(enumerate(dataset), desc = "Processing"):
+    item = item['idx']
     if i >= upper_limit:
         break
 
