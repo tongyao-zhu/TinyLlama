@@ -10,11 +10,12 @@ eval_args.add_argument("--n_shot", type=int, required=True)
 eval_args.add_argument("--seed", type=int, required=True)
 eval_args.add_argument("--device", type=int, required=False, default=0)
 eval_args.add_argument("--batch_size", type=int, required=False, default=4)
-eval_args.add_argument("--flash_attn_2", type=bool, default=False)
+eval_args.add_argument("--flash_attn_2",  action='store_true')
 eval_args.add_argument("--max_length", type=int, default=8192)
 eval_args.add_argument("--downsample", action="store_true")
 eval_args.add_argument("--print", action="store_true")
 eval_args.add_argument("--num_retrieved_docs", type=int, default=0)
+eval_args.add_argument("--flipped_ratio", type=float, default=0)
 eval_args = eval_args.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = f"{eval_args.device}"
@@ -56,6 +57,10 @@ TASK_DATA_PATH = {
         "train": "./eval_data/ag_news_train.jsonl",
         "test": "./eval_data/ag_news_test.jsonl",
     },
+    "agnews2": {
+        "train": "./eval_data/ag_news_train.jsonl",
+        "test": "./eval_data/ag_news_test.jsonl",
+    },
     "nq_obqa": {
         "validation": "./eval_data/nq-dev-dense-results.json",
         "test": "./eval_data/nq_test.json",
@@ -72,6 +77,14 @@ TASK_DATA_PATH = {
         "train": "./eval_data/amazon_train.jsonl",
         "test": "./eval_data/amazon_test.jsonl"
     },
+    "amazon2": {
+        "train": "./eval_data/amazon_train.jsonl",
+        "test": "./eval_data/amazon_test.jsonl"
+    },
+    "amazon3": {
+        "train": "./eval_data/amazon_train.jsonl",
+        "test": "./eval_data/amazon_test.jsonl"
+    },
     "dbpedia": {
         "train": "./eval_data/dbpedia_train.jsonl",
         "test": "./eval_data/dbpedia_test.jsonl"
@@ -81,6 +94,10 @@ TASK_DATA_PATH = {
         "test": "./eval_data/yelp_test.jsonl"
     },
     "sst2": {
+        "train": "./eval_data/sst2_train.jsonl",
+        "test": "./eval_data/sst2_test.jsonl",
+    },
+    "sst3": {
         "train": "./eval_data/sst2_train.jsonl",
         "test": "./eval_data/sst2_test.jsonl",
     },
@@ -232,8 +249,31 @@ def get_agnews_prompt(input_example, demonstrations, label2str):
     prompt = prompt + f"Article: {input_example['text'].strip()} Category:"
     return prompt
 
+def get_agnewsnoise_prompt(input_example, demonstrations, label2str):
+    prompt = ""
+    for item in demonstrations:
+        prompt = prompt + f"Article: {item['text'].strip()} Label: {label2str[item['label']]}\n\n"
+    prompt = prompt + f"Article: {input_example['text'].strip()} Label:"
+    return prompt
 
-def agnews_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size)-> Tuple[Dict, Dict]:
+def agnews2_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, flipped_ratio=0)-> Tuple[Dict, Dict]:
+    generation_kwargs["max_new_tokens"] = 4
+    train_data = load_jsonl(TASK_DATA_PATH[task]["train"])
+    test_data = load_jsonl(TASK_DATA_PATH[task]["test"])
+    # label2str = {0: "world", 1: "sports", 2: "business", 3: "science"}
+    label2str = {0: "A", 1: "B", 2: "C", 3: "D"}
+    get_label_call = lambda x: x["label"]
+    demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
+    if flipped_ratio > 0:
+        demonstrations = choose_wrong_label(demonstrations, seed, flipped_ratio, label2str)
+    prompt_list = []
+    for idx in range(len(test_data)):
+        prompt_list.append({"prompt": get_agnewsnoise_prompt(test_data[idx], demonstrations, label2str)})
+    predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
+    score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
+
+def agnews_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, flipped_ratio=0)-> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 4
     train_data = load_jsonl(TASK_DATA_PATH[task]["train"])
     test_data = load_jsonl(TASK_DATA_PATH[task]["test"])
@@ -241,12 +281,21 @@ def agnews_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, m
     # label2str = {0: "M", 1: "N", 2: "Q", 3: "P"}
     get_label_call = lambda x: x["label"]
     demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
+    if flipped_ratio > 0:
+        demonstrations = choose_wrong_label(demonstrations, seed, flipped_ratio, label2str)
     prompt_list = []
     for idx in range(len(test_data)):
         prompt_list.append({"prompt": get_agnews_prompt(test_data[idx], demonstrations, label2str)})
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
     return {"score": score}, {"prompts": prompt_list, "preds": predictions}
+
+def choose_wrong_label(demonstrations, seed, flipped_ratio, label2str):
+    rng = np.random.RandomState(seed)
+    flipped_indices = rng.choice(len(demonstrations), int(len(demonstrations) * flipped_ratio), replace=False)
+    for idx in flipped_indices:
+        demonstrations[idx]["label"] = rng.choice([label for label in label2str if label != demonstrations[idx]["label"]])
+    return demonstrations
 
 
 def get_amazon_prompt(input_example, demonstrations, label2str):
@@ -256,8 +305,14 @@ def get_amazon_prompt(input_example, demonstrations, label2str):
     prompt = prompt + f"Title: {input_example['title'].strip()}. Content: {input_example['content'].strip()} Sentiment:"
     return prompt
 
+def get_amazon2_prompt(input_example, demonstrations, label2str):
+    prompt = ""
+    for item in demonstrations:
+        prompt = prompt + f"Title: {item['title'].strip()}. Content: {item['content'].strip()} Label: {label2str[item['label']]}\n\n"
+    prompt = prompt + f"Title: {input_example['title'].strip()}. Content: {input_example['content'].strip()} Label:"
+    return prompt
 
-def amazon_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
+def amazon_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, flipped_ratio=0) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 3
     train_data = load_jsonl(TASK_DATA_PATH["amazon"]["train"])
     test_data = load_jsonl(TASK_DATA_PATH["amazon"]["test"])
@@ -265,12 +320,55 @@ def amazon_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, m
         sample_test_rng = np.random.RandomState(666)
         test_data = sample_test_rng.choice(test_data, 5000, replace=False)
     label2str = {0: "negative", 1: "positive"}
+
     # label2str = {0: "foo", 1: "bar"}
     get_label_call = lambda x: x["label"]
     demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
+    if flipped_ratio > 0:
+        demonstrations = flip_label(demonstrations, seed, flipped_ratio)
     prompt_list = []
     for idx in range(len(test_data)):
         prompt_list.append({"prompt": get_amazon_prompt(test_data[idx], demonstrations, label2str)})
+    predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
+    score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
+
+def amazon2_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, flipped_ratio=0) -> Tuple[Dict, Dict]:
+    generation_kwargs["max_new_tokens"] = 3
+    train_data = load_jsonl(TASK_DATA_PATH["amazon"]["train"])
+    test_data = load_jsonl(TASK_DATA_PATH["amazon"]["test"])
+    if DOWNSAMPLE:
+        sample_test_rng = np.random.RandomState(666)
+        test_data = sample_test_rng.choice(test_data, 5000, replace=False)
+    # label2str = {0: "negative", 1: "positive"}
+    label2str = {0: "foo", 1: "bar"}
+    get_label_call = lambda x: x["label"]
+    demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
+    if flipped_ratio > 0:
+        demonstrations = flip_label(demonstrations, seed, flipped_ratio)
+    prompt_list = []
+    for idx in range(len(test_data)):
+        prompt_list.append({"prompt": get_amazon2_prompt(test_data[idx], demonstrations, label2str)})
+    predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
+    score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
+
+def amazon3_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, flipped_ratio=0) -> Tuple[Dict, Dict]:
+    generation_kwargs["max_new_tokens"] = 3
+    train_data = load_jsonl(TASK_DATA_PATH["amazon"]["train"])
+    test_data = load_jsonl(TASK_DATA_PATH["amazon"]["test"])
+    if DOWNSAMPLE:
+        sample_test_rng = np.random.RandomState(666)
+        test_data = sample_test_rng.choice(test_data, 5000, replace=False)
+    # label2str = {0: "negative", 1: "positive"}
+    label2str = {0: "A", 1: "B"}
+    get_label_call = lambda x: x["label"]
+    demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
+    if flipped_ratio > 0:
+        demonstrations = flip_label(demonstrations, seed, flipped_ratio)
+    prompt_list = []
+    for idx in range(len(test_data)):
+        prompt_list.append({"prompt": get_amazon2_prompt(test_data[idx], demonstrations, label2str)})
     predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
     score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
     return {"score": score}, {"prompts": prompt_list, "preds": predictions}
@@ -284,7 +382,7 @@ def get_dbpedia_prompt(input_example, demonstrations, label2str):
     return prompt
 
 
-def dbpedia_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
+def dbpedia_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, flipped_ratio=0) -> Tuple[Dict, Dict]:
     names = ["Company", "EducationalInstitution", "Artist", "Athlete", "OfficeHolder", "MeanOfTransportation",
              "Building", "NaturalPlace", "Village", "Animal", "Plant", "Album", "Film", "WrittenWork", ]
     # names = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"]
@@ -297,6 +395,8 @@ def dbpedia_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, 
     label2str = {idx: name for idx, name in enumerate(names)}
     get_label_call = lambda x: x["label"]
     demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
+    if flipped_ratio > 0:
+        demonstrations = choose_wrong_label(demonstrations, seed, flipped_ratio, label2str)
     prompt_list = []
     for idx in range(len(test_data)):
         prompt_list.append({"prompt": get_dbpedia_prompt(test_data[idx], demonstrations, label2str)})
@@ -313,7 +413,7 @@ def get_yelp_prompt(input_example, demonstrations, label2str):
     return prompt
 
 
-def yelp_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
+def yelp_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, flipped_ratio=0) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 3
     train_data = load_jsonl(TASK_DATA_PATH["yelp"]["train"])
     test_data = load_jsonl(TASK_DATA_PATH["yelp"]["test"])
@@ -340,7 +440,14 @@ def get_sst2_prompt(input_example, demonstrations, label2str):
     return prompt
 
 
-def sst2_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size) -> Tuple[Dict, Dict]:
+def flip_label(demonstrations, seed, flipped_ratio):
+    rng = np.random.RandomState(seed)
+    flipped_indices = rng.choice(len(demonstrations), int(len(demonstrations) * flipped_ratio), replace=False)
+    for idx in flipped_indices:
+        demonstrations[idx]["label"] = 1 - demonstrations[idx]["label"]
+    return demonstrations
+
+def sst2_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, flipped_ratio=0) -> Tuple[Dict, Dict]:
     generation_kwargs["max_new_tokens"] = 3
     train_data = load_jsonl(TASK_DATA_PATH[task]["train"])
     test_data = load_jsonl(TASK_DATA_PATH[task]["test"])
@@ -348,6 +455,8 @@ def sst2_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max
     # label2str = {0: "foo", 1: "bar"}
     get_label_call = lambda x: x["label"]
     demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
+    if flipped_ratio > 0:
+        demonstrations = flip_label(demonstrations, seed, flipped_ratio)
     prompt_list = []
     for idx in range(len(test_data)):
         prompt_list.append({"prompt": get_sst2_prompt(test_data[idx], demonstrations, label2str)})
@@ -355,6 +464,22 @@ def sst2_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max
     score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
     return {"score": score}, {"prompts": prompt_list, "preds": predictions}
 
+def sst3_evaluation(model, tokenizer, generation_kwargs, task, n_shot, seed, max_length, batch_size, flipped_ratio=0) -> Tuple[Dict, Dict]:
+    generation_kwargs["max_new_tokens"] = 3
+    train_data = load_jsonl(TASK_DATA_PATH[task]["train"])
+    test_data = load_jsonl(TASK_DATA_PATH[task]["test"])
+    # label2str = {0: "positive", 1: "negative"}
+    label2str = {0: "foo", 1: "bar"}
+    get_label_call = lambda x: x["label"]
+    demonstrations = get_sampled_demonstrations(train_data, n_shot, seed)
+    if flipped_ratio > 0:
+        demonstrations = flip_label(demonstrations, seed, flipped_ratio)
+    prompt_list = []
+    for idx in range(len(test_data)):
+        prompt_list.append({"prompt": get_sst2_prompt(test_data[idx], demonstrations, label2str)})
+    predictions = generate(model, tokenizer, prompt_list, generation_kwargs, max_length, batch_size, task, n_shot, seed)
+    score = metric_acc(predictions, test_data, label2str, get_label_call, normalise_pred=normalise_pred)
+    return {"score": score}, {"prompts": prompt_list, "preds": predictions}
 
 def get_tweet_hate_prompt(input_example, demonstrations, label2str):
     prompt = ""
@@ -572,10 +697,14 @@ eval_callables = {
     "tq": cbqa_evaluation,
     "wq": cbqa_evaluation,
     "sst2": sst2_evaluation,
+    "sst3": sst3_evaluation,
     "agnews": agnews_evaluation,
+    "agnews2": agnews2_evaluation,
     "nq_obqa": nq_obqa_evaluation,
     "hotpotqa": hotpotqa_evaluation,
     "amazon": amazon_evaluation,
+    "amazon2": amazon2_evaluation,
+    "amazon3": amazon3_evaluation,
     "dbpedia": dbpedia_evaluation,
     "yelp": yelp_evaluation,
     "tweet_hate": tweet_hate_evaluation,
@@ -614,6 +743,8 @@ def main():
     task_save_path = f"./outputs/{save_path}/{eval_args.task}_{eval_args.n_shot}_{eval_args.seed}.json"
     if is_obqa(eval_args.task):
         task_save_path = f"./outputs/{save_path}/{eval_args.task}_{eval_args.n_shot}_{eval_args.seed}_{eval_args.num_retrieved_docs}.json"
+    if eval_args.flipped_ratio > 0:
+        task_save_path = task_save_path.replace(".json", f"_flipped_{eval_args.flipped_ratio}.json")
 
     if os.path.exists(task_save_path):
         logger.info(f"{task_save_path} exists, skipping...")
@@ -621,11 +752,14 @@ def main():
 
     tokenizer = LlamaTokenizer.from_pretrained('/home/aiops/zhuty/tinyllama/models' , padding_side='left', truncation_side="left")
     tokenizer.pad_token = tokenizer.eos_token
+    print(eval_args.flash_attn_2)
     if eval_args.flash_attn_2:
         try:
+            print("Trying to use FlashAttention2")
             model = LlamaForCausalLM.from_pretrained(
                 eval_args.model_path, torch_dtype=torch.float16, attn_implementation="flash_attention_2",
             )
+            task_save_path = task_save_path.replace(".json", "_flash2.json")
         except Exception as err:
             logger.error(err)
             logger.info("cannot use FlashAttention2")
@@ -642,7 +776,7 @@ def main():
     if not is_obqa(eval_args.task):
         assert eval_args.num_retrieved_docs == 0, "num_retrieved_docs must not be specified for non-obqa tasks"
         score, prompts_and_preds = evaluation(model, tokenizer, generation_kwargs, eval_args.task, eval_args.n_shot,
-                       eval_args.seed, eval_args.max_length - 5, eval_args.batch_size)
+                       eval_args.seed, eval_args.max_length - 5, eval_args.batch_size, eval_args.flipped_ratio)
     else:
         assert eval_args.num_retrieved_docs != -1, "num_retrieved_docs must be specified for obqa tasks"
         score, prompts_and_preds = evaluation(model, tokenizer, generation_kwargs, eval_args.task, eval_args.n_shot,
@@ -651,6 +785,7 @@ def main():
     results.update(score)
     results = json.dumps(results)
     logger.info(results)
+    print("Save results to: ", task_save_path)
     with open("./outputs/logs", "a") as fn:
         fn.write(results + "\n")
 
